@@ -1,0 +1,7 @@
+{
+    "filename":"./log/new-yo.log",
+    "maxsize":10,
+    "maxage":7,
+    "maxbackups":7,
+    "localtime":true
+}
