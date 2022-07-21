@@ -17,7 +17,7 @@ func main() {
 	controller.InitRoutes(routeHttp)
 
 	// HTTP
-	routeHttp.Run(":80")
+	routeHttp.Run(":30100")
 
 	quit := make(chan os.Signal, 1)
 	done := make(chan bool, 1)

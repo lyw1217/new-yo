@@ -33,7 +33,7 @@ func requestGetDocument(url string) (*http.Response, error) {
 		log.Error(err, "Err, Failed to Get Request")
 		return nil, err
 	}
-	
+
 	return resp, err
 }
 
@@ -46,9 +46,9 @@ func requestArticle(url string) (interface{}, error) {
 
 	bytes, _ := ioutil.ReadAll(resp.Body)
 
-	var jsonData map[string]interface{} 
+	var jsonData map[string]interface{}
 
-	e := json.Unmarshal(bytes, &jsonData) // 이게 파싱하는 구문. 
+	e := json.Unmarshal(bytes, &jsonData) // 이게 파싱하는 구문.
 	if e != nil {
 		log.Error(err, "Err. Failed to json.Unmarshal")
 		return "", err
@@ -60,10 +60,10 @@ func requestArticle(url string) (interface{}, error) {
 // /article?paper=hankyung , /article?paper=maekyung , /article?paper=quicknews
 func getArticle(c *gin.Context) {
 	paper := c.Query("paper")
-	
+
 	switch paper {
 	case "hankyung":
-		resp, err := requestArticle("http://localhost:9090/article?paper=hankyung")
+		resp, err := requestArticle("http://localhost:30200/article?paper=hankyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "500",
@@ -71,14 +71,14 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		c.JSON(http.StatusOK, gin.H{
-			"status": "200",
+			"status":   "200",
 			"contents": resp,
 		})
 
 	case "maekyung":
-		resp, err := requestArticle("http://localhost:9090/article?paper=maekyung")
+		resp, err := requestArticle("http://localhost:30200/article?paper=maekyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "500",
@@ -86,14 +86,14 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		c.JSON(http.StatusOK, gin.H{
-			"status": "200",
+			"status":   "200",
 			"contents": resp,
 		})
 
 	case "quicknews":
-		resp, err := requestArticle("http://localhost:9090/article?paper=quicknews")
+		resp, err := requestArticle("http://localhost:30200/article?paper=quicknews")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "500",
@@ -101,9 +101,9 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		c.JSON(http.StatusOK, gin.H{
-			"status": "200",
+			"status":   "200",
 			"contents": resp,
 		})
 
@@ -117,6 +117,13 @@ func getArticle(c *gin.Context) {
 
 func InitRoutes(r *gin.Engine) {
 	r.NoRoute(NotFoundPage)
+
+	r.GET("/", func(c *gin.Context) {
+		c.String(
+			http.StatusOK,
+			"Hello World. NEW-YO!",
+		)
+	})
 
 	r.GET("/article", getArticle)
 }
