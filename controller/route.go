@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -59,58 +60,118 @@ func requestArticle(url string) (interface{}, error) {
 
 // /article?paper=hankyung , /article?paper=maekyung , /article?paper=quicknews
 func getArticle(c *gin.Context) {
-	paper := c.Query("paper")
+	target := c.Query("paper")
+	contents := make([]Contents, 0)
 
-	switch paper {
+	switch target {
 	case "hankyung":
-		resp, err := requestArticle("http://localhost:30200/article?paper=hankyung")
+		var data Contents
+		resp, err := requestArticle("http://mumeog.site:30200/article?paper=hankyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"status": "500",
+				"status": "fail",
 				"reason": "Internal Server Error",
 			})
 			break
 		}
+		
+		data.Paper = "한국경제 Issue Today"
+		data.Content = fmt.Sprintf("%v", resp)
+		contents = append(contents, data)
 
 		c.JSON(http.StatusOK, gin.H{
-			"status":   "200",
-			"contents": resp,
+			"status":   "success",
+			"contents": contents,
 		})
 
 	case "maekyung":
-		resp, err := requestArticle("http://localhost:30200/article?paper=maekyung")
+		var data Contents
+		resp, err := requestArticle("http://mumeog.site:30200/article?paper=maekyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"status": "500",
+				"status": "fail",
 				"reason": "Internal Server Error",
 			})
 			break
 		}
+		
+		data.Paper = "매일경제 매.세.지"
+		data.Content = fmt.Sprintf("%v", resp)
+		contents = append(contents, data)
 
 		c.JSON(http.StatusOK, gin.H{
-			"status":   "200",
-			"contents": resp,
+			"status":   "success",
+			"contents": contents,
 		})
 
 	case "quicknews":
-		resp, err := requestArticle("http://localhost:30200/article?paper=quicknews")
+		var data Contents
+		resp, err := requestArticle("http://mumeog.site:30200/article?paper=quicknews")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"status": "500",
+				"status": "fail",
 				"reason": "Internal Server Error",
 			})
 			break
 		}
+		
+		data.Paper = "간추린뉴스"
+		data.Content = fmt.Sprintf("%v", resp)
+		contents = append(contents, data)
 
 		c.JSON(http.StatusOK, gin.H{
-			"status":   "200",
-			"contents": resp,
+			"status":   "success",
+			"contents": contents,
 		})
 
+
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status": "400",
-			"reason": "Bad Request",
+		/* hankyung */
+		var data Contents
+		resp, err := requestArticle("http://mumeog.site:30200/article?paper=hankyung")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": "fail",
+				"reason": "Internal Server Error",
+			})
+			break
+		}
+		
+		data.Paper = "한국경제 Issue Today"
+		data.Content = fmt.Sprintf("%v", resp)
+		contents = append(contents, data)
+
+		/* maekyung */
+		resp, err = requestArticle("http://mumeog.site:30200/article?paper=maekyung")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": "fail",
+				"reason": "Internal Server Error",
+			})
+			break
+		}
+		
+		data.Paper = "매일경제 매.시.지"
+		data.Content = fmt.Sprintf("%v", resp)
+		contents = append(contents, data)
+
+		/* quicknews */
+		resp, err = requestArticle("http://mumeog.site:30200/article?paper=quicknews")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": "fail",
+				"reason": "Internal Server Error",
+			})
+			break
+		}
+		
+		data.Paper = "간추린뉴스"
+		data.Content = fmt.Sprintf("%v", resp)
+		contents = append(contents, data)
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":   "success",
+			"contents": contents,
 		})
 	}
 }
@@ -121,7 +182,7 @@ func InitRoutes(r *gin.Engine) {
 	r.GET("/", func(c *gin.Context) {
 		c.String(
 			http.StatusOK,
-			"Hello World. NEW-YO!",
+			"Hello NEW-YO!",
 		)
 	})
 

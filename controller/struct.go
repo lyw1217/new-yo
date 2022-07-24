@@ -12,3 +12,8 @@ type CommCfg_t struct {
 	MaxSendCnt int      `json:"max_send_cnt"`
 	Media      []News_t `json:"news"`
 }
+
+type Contents struct {
+	Paper	string	`json:"paper"`
+	Content	string	`json:"content"`
+}
