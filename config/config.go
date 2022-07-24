@@ -65,7 +65,3 @@ func SetupLogger() {
 	log.Error(" ")
 	log.Error("< SCRAPER > Successful Logger setup ...............")
 }
-
-func init() {
-	SetupLogger()
-}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"newyo/config"
 	"newyo/controller"
 	"os"
 	"os/signal"
@@ -11,13 +12,21 @@ import (
 )
 
 func main() {
+	
+	config.SetupLogger()
+
 	routeHttp := gin.Default()
 
 	// Initialize the routes
 	controller.InitRoutes(routeHttp)
 
 	// HTTP
-	routeHttp.Run(":30100")
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Println("Wrong Value of environment : $PORT = '", port, "'")
+		os.Exit(1)
+	}
+	routeHttp.Run(":"+port)
 
 	quit := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
