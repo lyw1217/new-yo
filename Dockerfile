@@ -1,8 +1,11 @@
 # NEWYO
-FROM golang:1.18
+ARG BUILD_IMAGE=golang:1.18-alpine3.15
+ARG BASE_IMAGE=alpine:3.15
 
-ENV GIN_MODE=debug
-ENV PORT=30100
+
+FROM ${BUILD_IMAGE} AS builder
+ENV GIN_MODE=debug \
+    PORT=30100
     
 WORKDIR /usr/src/app
 
@@ -12,6 +15,15 @@ RUN go mod download && go mod verify
 
 COPY . .
 RUN go build -v -o /usr/local/bin/app .
+
+FROM ${BASE_IMAGE}
+LABEL AUTHOR Youngwoo Lee (mvl100d@gmail.com)
+ENV GIN_MODE=debug \
+    PORT=30100
+
+WORKDIR /usr/src/app
+
+COPY --chown=0:0 --from=builder /usr/local/bin/app /usr/local/bin/app
 
 EXPOSE ${PORT}
 
