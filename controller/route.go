@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 
@@ -66,7 +67,7 @@ func getArticle(c *gin.Context) {
 	switch target {
 	case "hankyung":
 		var data Contents
-		resp, err := requestArticle("http://mumeog.site:30200/article?paper=hankyung")
+		resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -74,7 +75,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		data.Paper = "한국경제 Issue Today"
 		data.Content = fmt.Sprintf("%v", resp)
 		contents = append(contents, data)
@@ -86,7 +87,7 @@ func getArticle(c *gin.Context) {
 
 	case "maekyung":
 		var data Contents
-		resp, err := requestArticle("http://mumeog.site:30200/article?paper=maekyung")
+		resp, err := requestArticle(SCRAPER_URL + "/article?paper=maekyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -94,7 +95,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		data.Paper = "매일경제 매.세.지"
 		data.Content = fmt.Sprintf("%v", resp)
 		contents = append(contents, data)
@@ -106,7 +107,7 @@ func getArticle(c *gin.Context) {
 
 	case "quicknews":
 		var data Contents
-		resp, err := requestArticle("http://mumeog.site:30200/article?paper=quicknews")
+		resp, err := requestArticle(SCRAPER_URL + "/article?paper=quicknews")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -114,7 +115,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		data.Paper = "간추린뉴스"
 		data.Content = fmt.Sprintf("%v", resp)
 		contents = append(contents, data)
@@ -124,11 +125,10 @@ func getArticle(c *gin.Context) {
 			"contents": contents,
 		})
 
-
 	default:
 		/* hankyung */
 		var data Contents
-		resp, err := requestArticle("http://mumeog.site:30200/article?paper=hankyung")
+		resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -136,13 +136,13 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		data.Paper = "한국경제 Issue Today"
 		data.Content = fmt.Sprintf("%v", resp)
 		contents = append(contents, data)
 
 		/* maekyung */
-		resp, err = requestArticle("http://mumeog.site:30200/article?paper=maekyung")
+		resp, err = requestArticle(SCRAPER_URL + "/article?paper=maekyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -150,13 +150,13 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
-		data.Paper = "매일경제 매.시.지"
+
+		data.Paper = "매일경제 매.세.지"
 		data.Content = fmt.Sprintf("%v", resp)
 		contents = append(contents, data)
 
 		/* quicknews */
-		resp, err = requestArticle("http://mumeog.site:30200/article?paper=quicknews")
+		resp, err = requestArticle(SCRAPER_URL + "/article?paper=quicknews")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -164,7 +164,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		data.Paper = "간추린뉴스"
 		data.Content = fmt.Sprintf("%v", resp)
 		contents = append(contents, data)
@@ -173,6 +173,105 @@ func getArticle(c *gin.Context) {
 			"status":   "success",
 			"contents": contents,
 		})
+	}
+}
+
+// 날씨 얻기
+func getWeather(c *gin.Context) {
+
+	// Request 객체 생성
+	req, err := http.NewRequest("GET", SCRAPER_URL+"/weather", nil)
+	if err != nil {
+		log.Error(err, "Err, Failed to NewRequest()")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"reason": "Internal Server Error",
+		})
+		return
+	}
+
+	// Query : Keyword, 검색 키워드(지역명)
+	k1 := c.Query("k1")
+	k2 := c.Query("k2")
+	k3 := c.Query("k3")
+
+	if len(k1) == 0 && len(k2) == 0 && len(k3) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"reason": "Bad Request",
+		})
+		return
+	}
+
+	q := req.URL.Query()
+
+	if len(k1) > 0 {
+		q.Add("k1", k1)
+	}
+	if len(k2) > 0 {
+		q.Add("k2", k2)
+	}
+	if len(k3) > 0 {
+		q.Add("k3", k3)
+	}
+
+	// Query : Period
+	p := c.Query("p")
+
+	if len(p) > 0 {
+		period, err := strconv.Atoi(p)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status": http.StatusBadRequest,
+				"reason": "Query p is not integer.",
+			})
+			return
+		}
+		// 최대 24시간 조회 제한
+		if period > 24 {
+			period = 24
+		}
+
+		q.Add("p", p)
+
+		req.URL.RawQuery = q.Encode()
+
+		fmt.Println(req.URL.String())
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Error(err, "Err, Failed to Get Request")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": http.StatusInternalServerError,
+				"reason": "Internal Server Error",
+			})
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Error(err, "Err, Failed to ReadAll")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": http.StatusInternalServerError,
+				"reason": "Internal Server Error",
+			})
+			return
+		}
+
+		c.String(resp.StatusCode, "%s", string(body))
+
+		return
+
+	} else {
+		// 조회된 전체 기간 (default : 24h)
+		// 에러처리
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"reason": "Query p is not integer.",
+		})
+		return
 	}
 }
 
@@ -187,4 +286,6 @@ func InitRoutes(r *gin.Engine) {
 	})
 
 	r.GET("/article", getArticle)
+
+	r.GET("/weather", getWeather)
 }
