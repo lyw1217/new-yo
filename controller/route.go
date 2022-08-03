@@ -176,6 +176,44 @@ func getArticle(c *gin.Context) {
 	}
 }
 
+func ParseWeather(body []FcstItem_t, name string) string {
+
+	parsed_data := ""
+
+	parsed_data += name + "@"
+	// 0: 1시간 기온, 5: 하늘 상태, 6: 강수 형태, 7: 강수 확률, 9: 강수량, 10: 습도, 11: 1시간 신적설
+	parsed_data += body[0].FcstDate[0:4] + "년 " + body[0].FcstDate[4:6] + "월 " + body[0].FcstDate[6:8] + "일 "
+	parsed_data += body[0].FcstTime[0:2] + "시 예보" + "@"
+	// 1시간 기온
+	parsed_data += body[0].Category + " : "
+	parsed_data += body[0].FcstValue + "@"
+	// 하늘 상태
+	parsed_data += body[5].Category + "   : "
+	parsed_data += body[5].FcstValue + "@"
+	// 강수 형태
+	parsed_data += body[6].Category + "   : "
+	parsed_data += body[6].FcstValue + "@"
+	// 강수 확률
+	parsed_data += body[7].Category + "   : "
+	parsed_data += body[7].FcstValue + "@"
+	// 강수량
+	if body[6].FcstValue != "없음" {
+		parsed_data += body[9].Category + "       : "
+		parsed_data += body[9].FcstValue + "@"
+	}
+	// 습도
+	parsed_data += body[10].Category + "          : "
+	parsed_data += body[10].FcstValue
+	// 1시간 신적설
+	if body[11].FcstValue != "적설없음" {
+		parsed_data += "@"
+		parsed_data += body[11].Category + ": "
+		parsed_data += body[11].FcstValue
+	}
+
+	return parsed_data
+}
+
 // 날씨 얻기
 func getWeather(c *gin.Context) {
 
@@ -215,7 +253,7 @@ func getWeather(c *gin.Context) {
 		q.Add("k3", k3)
 	}
 
-	// Query : Period
+	// Query : Period, 0: 오늘, 1: 내일
 	p := c.Query("p")
 
 	if len(p) > 0 {
@@ -227,16 +265,18 @@ func getWeather(c *gin.Context) {
 			})
 			return
 		}
-		// 최대 24시간 조회 제한
-		if period > 24 {
-			period = 24
+
+		if period > 1 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status": http.StatusBadRequest,
+				"reason": "Query p is invalid.",
+			})
+			return
 		}
 
 		q.Add("p", p)
 
 		req.URL.RawQuery = q.Encode()
-
-		fmt.Println(req.URL.String())
 
 		client := &http.Client{}
 		resp, err := client.Do(req)
@@ -250,6 +290,14 @@ func getWeather(c *gin.Context) {
 		}
 		defer resp.Body.Close()
 
+		if resp.StatusCode != http.StatusOK {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status": http.StatusNotFound,
+				"reason": "Not Found",
+			})
+			return
+		}
+
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.Error(err, "Err, Failed to ReadAll")
@@ -260,7 +308,22 @@ func getWeather(c *gin.Context) {
 			return
 		}
 
-		c.String(resp.StatusCode, "%s", string(body))
+		parse_resp := FcstContents{}
+		err = json.Unmarshal(body, &parse_resp)
+		if err != nil {
+			log.Error("error decoding response: %v", err)
+			if e, ok := err.(*json.SyntaxError); ok {
+				log.Error("syntax error at byte offset %d", e.Offset)
+			}
+			log.Error("response: %q", string(body))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": http.StatusInternalServerError,
+				"reason": "Internal Server Error",
+			})
+			return
+		}
+
+		c.String(resp.StatusCode, "%s", ParseWeather(parse_resp.Contents, parse_resp.Name))
 
 		return
 
