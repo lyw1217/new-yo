@@ -1,4 +1,4 @@
-const scriptName = "newyo";
+const scriptName = "weather";
 /**
  * (string) room
  * (string) sender
@@ -9,9 +9,10 @@ const scriptName = "newyo";
  * (string) packageName
  */
 
-let comm_db_root = "newyo/db/comm/";
-let room_db_root = "newyo/db/room/";
-let user_db_root = "newyo/db/user/";
+ let db_root = "newyo/db/"
+ let comm_db = db_root + "comm/";
+ let room_db = db_root + "room/";
+ let user_db = db_root + "user/";
 let kimchi_count = 0 ;
 
 /*
@@ -99,31 +100,14 @@ function response(
   let data;
   let resp = "";
   
-  let run = DataBase.getDataBase(comm_db_root + "run");
+  let run = DataBase.getDataBase(comm_db + "run");
   if ( run == null) {
-    DataBase.setDataBase(comm_db_root + "run", "t");
+    DataBase.setDataBase(comm_db + "run", "t");
   }
 
   if (run == "t") {
     try {
-      if ( msg == "/날씨" ) {
-        resp += "------------  날씨  ------------\u200b\n";
-        resp += "현재 시간을 기준으로 날씨 정보를 알려줍니다.\n";
-        resp += "'/지금 (동네) 날씨'\n\t - 지금 날씨 조회\n";
-        resp += "'/오늘 (동네) 날씨'\n\t - 오늘 날씨 조회(미지원)\n";
-        resp += "'/내일 (동네) 날씨'\n\t - 내일 날씨 조회(미지원)\n";
-        resp += "[예시]\n";
-        resp += "\t/지금 서현 날씨\n";
-        resp += "\t/오늘 성남 분당 날씨(미지원)\n";
-        resp += "\t/내일 경기 하남 위례 날씨(미지원)\n";
-        resp += "--------------------------------\n";
-        resp += "띄어쓰기로 명령어와 동네 키워드를 구분해주세요.\n";
-        resp += "동네 키워드는 최대 3개까지 가능합니다.\n";
-        resp += "예보 제공사 : 기상청";
-      }
-
-      // 지금 날씨
-      else if (msg.includes("/지금") && msg.includes("날씨")) {
+      if (msg.includes("/지금") && msg.includes("날씨")) {
         const input_now_keywords = msg.split(' ');
         if ( input_now_keywords.length < 3 ) {
           return;

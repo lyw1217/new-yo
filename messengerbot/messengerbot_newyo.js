@@ -10,10 +10,64 @@ const scriptName = "newyo";
  */
 
 
-let comm_db_root = "newyo/db/comm/";
-let room_db_root = "newyo/db/room/";
-let user_db_root = "newyo/db/user/";
+ let db_root = "newyo/db/"
+ let comm_db = db_root + "comm/";
+ let room_db = db_root + "room/";
+ let user_db = db_root + "user/";
 let kimchi_count = 0 ;
+
+function printMainHelp() {
+  let temp_str = "";
+  temp_str += "--------  영우로봇 기능  -------\n\u200b";
+  temp_str += "  1. 일일 요약 뉴스 조회 기능\n";
+  temp_str += "  2. 지금 날씨 조회 기능\n";
+  temp_str += "  3. 소소한 기능들\n";
+  temp_str += "  '/기능 (숫자)'로 자세한 설명을 볼 수 있어요.";
+  return temp_str;
+}
+function printNewsHelp() {
+  let temp_str = "";
+  temp_str += "------------  뉴스  ------------\n\u200b";
+  temp_str += "- '/뉴스'\n\t 전체 조회\n";
+  temp_str += "- '/한경'\n\t 한경 Issue Today 조회\n";
+  temp_str += "- '/매경'\n\t 매경 매.세.지 조회\n";
+  temp_str += "- '/간추린'\n\t 간추린뉴스 조회";
+
+  return temp_str;
+}
+
+function printWeatherHelp() {
+
+  let temp_str = "";
+  temp_str += "------------  날씨  ------------\n\u200b";
+  temp_str += "현재 시간을 기준으로 날씨 정보를 알려줍니다.\n";
+  temp_str += "- '/지금 (동네) 날씨'\n\t - 지금 날씨 조회\n";
+  //temp_str += "'/오늘 (동네) 날씨'\n\t - 오늘 날씨 조회(미지원)\n";
+  //temp_str += "'/내일 (동네) 날씨'\n\t - 내일 날씨 조회(미지원)\n";
+  temp_str += "[예시]\n";
+  temp_str += "\t/지금 서현 날씨\n";
+  //temp_str += "\t/오늘 성남 분당 날씨(미지원)\n";
+  //temp_str += "\t/내일 경기 하남 위례 날씨(미지원)\n";
+  temp_str += "------------------------------\n";
+  temp_str += "띄어쓰기로 명령어와 동네 키워드들을 구분해주세요.\n";
+  temp_str += "동네 키워드는 최대 3개까지 가능합니다.\n";
+  temp_str += "예보 제공사 : 기상청";
+
+  return temp_str;
+}
+
+function printFunHelp() {
+  let temp_str = "";
+  temp_str += "------------  소소  ------------\n\u200b";
+  temp_str += "- '/로또' : 최근 로또 당첨번호 조회\n";
+  temp_str += "\t - '/로또 생성' : 랜덤 번호 생성\n";
+  temp_str += "- '/가르치기' : 단어 가르치기\n";
+  temp_str += "\t - '/가르치기 A=B' : A는 B라고 가르치기\n";
+  temp_str += "- '/학습제거' : 가르친 단어 잊게 하기\n";
+  temp_str += "\t - '/학습제거 A' : A라고 가르친 단어 제거";
+
+  return temp_str;
+}
 
 function response(
   room,
@@ -28,40 +82,40 @@ function response(
   let article_qry = "/article?paper=";
   let data;
   let resp = "";
-  let run = DataBase.getDataBase(comm_db_root + "run");
+  let run = DataBase.getDataBase(comm_db + "run");
   if ( run == null) {
-    DataBase.setDataBase(comm_db_root + "run", "t");
+    DataBase.setDataBase(comm_db + "run", "t");
   }
 
   if (msg.includes("/그만") || msg.includes("/stop")) {
-    if ( sender.includes("지훈") && kimchi_count < 3) {
+    if ( sender.includes("지훈") && kimchi_count < 2) {
       resp += "삐빅- 김지훈의 말은 듣지 않는다.";
       kimchi_count += 1;
     } else {
-      if ( sender.includes("지훈") && kimchi_count >= 3 ) {
+      if ( sender.includes("지훈") && kimchi_count >= 2 ) {
         resp += "삑- 한번 들어줌. ";
         kimchi_count = 0;
       }
       resp += "그만쓰";
-      DataBase.setDataBase(comm_db_root + "run", "f");
+      DataBase.setDataBase(comm_db + "run", "f");
     }
   } else if (msg.includes("/시작") || msg.includes("/start")) {
-    if ( sender.includes("지훈") && kimchi_count < 3) {
+    if ( sender.includes("지훈") && kimchi_count < 2) {
       resp += "삐빅- 김지훈의 말은 듣지 않는다.";
       kimchi_count += 1;
     } else {
-      if ( sender.includes("지훈") && kimchi_count >= 3 ) {
+      if ( sender.includes("지훈") && kimchi_count >= 2 ) {
         resp += "삑- 한번 들어줌. ";
         kimchi_count = 0;
       }
       resp += "시작쓰";
-      DataBase.setDataBase(comm_db_root + "run", "t");
+      DataBase.setDataBase(comm_db + "run", "t");
     }
   }
 
   if (run == "t") {
     try {
-      if (msg.includes("/뉴스") || msg.includes("/1")) {
+      if (msg.includes("/뉴스")) {
         try {
           data = Utils.parse(url + "/article").text();
           data = JSON.parse(data);
@@ -78,7 +132,7 @@ function response(
       }
 
       // 한경
-      else if (msg.includes("/한경") || msg.includes("/2")) {
+      else if (msg.includes("/한경")) {
         try {
           data = Utils.parse(url + article_qry + "hankyung").text();
           data = JSON.parse(data);
@@ -89,7 +143,7 @@ function response(
       }
       
       // 매경
-      else if (msg.includes("/매경") || msg.includes("/3")) {
+      else if (msg.includes("/매경")) {
         try {
           data = Utils.parse(url + article_qry + "maekyung").text();
           data = JSON.parse(data);
@@ -100,7 +154,7 @@ function response(
       }
       
       // 간추린뉴스
-      else if (msg.includes("/간추린") || msg.includes("/4")) {
+      else if (msg.includes("/간추린")) {
         try {
           data = Utils.parse(url + article_qry + "quicknews").text();
           data = JSON.parse(data);
@@ -111,17 +165,21 @@ function response(
       }
       
       // HELP
-      else if ( msg.includes("/기능") || msg.includes("/?") || msg.includes("/h") ) {
-        resp += "------------  기능  ------------\n\u200b";
-        resp += "1. '/뉴스'\n\t 전체 조회\n";
-        resp += "2. '/한경'\n\t 한경 Issue Today 조회\n";
-        resp += "3. '/매경'\n\t 매경 매.세.지 조회\n";
-        resp += "4. '/간추린'\n\t 간추린뉴스 조회\n";
-        resp += "-. '/지금 [동네] 날씨'\n\t 오늘 날씨 조회\n";
-        resp += "-. '/내일 [동네] 날씨'\n\t 내일 날씨 조회\n";
-        resp += "--------------------------------\n";
-        resp += "'/숫자'로 기능을 사용할 수도 있습니다.\n";
-        resp += "'/날씨'로 날씨 기능을 확인할 수 있습니다.";
+      else if ( msg.includes("/기능") ) {
+        if ( msg != "/기능" ) {
+          const input_help = msg.substring("/기능 ".length).trim();
+          if ( input_help.includes("1") ) {
+            resp += printNewsHelp();
+          } else if ( input_help.includes("2") ) {
+            resp += printWeatherHelp();
+          } else if ( input_help.includes("3") ) {
+            resp += printFunHelp();
+          }
+        } else {
+          resp += printMainHelp();
+        }
+      } else if ( msg == "/날씨" ) {
+        resp += printWeatherHelp();
       }
     } catch (error) {
       resp = "에러 발생.\n err : " + error;
