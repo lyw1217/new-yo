@@ -59,18 +59,18 @@ function parseKeywords(
 ) {
   let k = ["", "", ""] ;
   let response_data = "";
-
+  
   switch (input.length) {
-    case 4:
+    case 5:
       if (!input[3].includes("날씨")) {
         k[2] = input[3];
       }
       
-    case 3:
+    case 4:
       if (!input[2].includes("날씨")) {
         k[1] = input[2];
       }
-    case 2:
+    case 3:
       if (!input[1].includes("날씨")) {
         k[0] = input[1];
       }
@@ -95,8 +95,8 @@ function response(
   imageDB,
   packageName
 ) {
-  let url = "http://mumeog.site:30100";
-  let weather_qry = "/weather?";
+  const url = "http://mumeog.site:30100";
+  const weather_qry = "/weather?";
   let data;
   let resp = "";
   
@@ -126,18 +126,18 @@ function response(
         }
       }
 
-      // 내일 날씨
-      else if (msg.includes("/내일") && msg.includes("날씨")) {
-        return;
-        const input_tom_keywords = msg.split(' ');
+      else if (msg.includes("/예보")) {
 
-        let keywords = parseKeywords(input_tom_keywords);
-        resp += keywords.response_data;
+        const input_fcst_keywords = msg.split(' ');
 
-        if ( keywords.response_data.length == 0 ) {
-          const tom_params = "&k1=" + keywords.k[0] + "&k2=" + keywords.k[1] + "&k3=" + keywords.k[2] + "&p=1";
-          data = Utils.parse(url + weather_qry + tom_params.toString()).text();
-          resp += data;
+        if (input_fcst_keywords.length > 1) {
+          try {
+            data = Utils.parse(url + weather_qry + "mid=" + input_fcst_keywords[1]).text();
+            resp += data.split('@').join('\n');
+          } catch (error) {
+            resp += "'/예보' 로 가능한 지역을 확인해보세요.";
+            Log.d(error, true);
+          }
         }
       }
     } catch (error) {

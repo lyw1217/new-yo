@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -62,11 +63,11 @@ func requestArticle(url string) (interface{}, error) {
 // /article?paper=hankyung , /article?paper=maekyung , /article?paper=quicknews
 func getArticle(c *gin.Context) {
 	target := c.Query("paper")
-	contents := make([]Contents, 0)
+	contents := make([]Contents_t, 0)
 
 	switch target {
 	case "hankyung":
-		var data Contents
+		var data Contents_t
 		resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -86,7 +87,7 @@ func getArticle(c *gin.Context) {
 		})
 
 	case "maekyung":
-		var data Contents
+		var data Contents_t
 		resp, err := requestArticle(SCRAPER_URL + "/article?paper=maekyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -106,7 +107,7 @@ func getArticle(c *gin.Context) {
 		})
 
 	case "quicknews":
-		var data Contents
+		var data Contents_t
 		resp, err := requestArticle(SCRAPER_URL + "/article?paper=quicknews")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -127,7 +128,7 @@ func getArticle(c *gin.Context) {
 
 	default:
 		/* hankyung */
-		var data Contents
+		var data Contents_t
 		resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -214,8 +215,7 @@ func ParseWeather(body []FcstItem_t, name string) string {
 	return parsed_data
 }
 
-// 날씨 얻기
-func getWeather(c *gin.Context) {
+func weatherKeyword(c *gin.Context, keywords []string) {
 
 	// Request 객체 생성
 	req, err := http.NewRequest("GET", SCRAPER_URL+"/weather", nil)
@@ -228,29 +228,11 @@ func getWeather(c *gin.Context) {
 		return
 	}
 
-	// Query : Keyword, 검색 키워드(지역명)
-	k1 := c.Query("k1")
-	k2 := c.Query("k2")
-	k3 := c.Query("k3")
-
-	if len(k1) == 0 && len(k2) == 0 && len(k3) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status": http.StatusBadRequest,
-			"reason": "Bad Request",
-		})
-		return
-	}
-
 	q := req.URL.Query()
 
-	if len(k1) > 0 {
-		q.Add("k1", k1)
-	}
-	if len(k2) > 0 {
-		q.Add("k2", k2)
-	}
-	if len(k3) > 0 {
-		q.Add("k3", k3)
+	for i, k := range keywords {
+		key := fmt.Sprintf("k%d", i+1)
+		q.Add(key, k)
 	}
 
 	// Query : Period, 0: 오늘, 1: 내일
@@ -308,7 +290,7 @@ func getWeather(c *gin.Context) {
 			return
 		}
 
-		parse_resp := FcstContents{}
+		parse_resp := FcstContents_t{}
 		err = json.Unmarshal(body, &parse_resp)
 		if err != nil {
 			log.Error("error decoding response: %v", err)
@@ -332,7 +314,120 @@ func getWeather(c *gin.Context) {
 		// 에러처리
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": http.StatusBadRequest,
-			"reason": "Query p is not integer.",
+			"reason": "Query p is invalid.",
+		})
+		return
+	}
+}
+
+func weatherMidterm(c *gin.Context, mid string) {
+	// Request 객체 생성
+	req, err := http.NewRequest("GET", SCRAPER_URL+"/weather", nil)
+	if err != nil {
+		log.Error(err, "Err, Failed to NewRequest()")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"reason": "Internal Server Error",
+		})
+		return
+	}
+
+	q := req.URL.Query()
+
+	q.Add("mid", mid)
+
+	req.URL.RawQuery = q.Encode()
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error(err, "Err, Failed to Get Request")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"reason": "Internal Server Error",
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"reason": "Not Found",
+		})
+		return
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err, "Err, Failed to ReadAll")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"reason": "Internal Server Error",
+		})
+		return
+	}
+
+	parse_resp := FcstMidContents_t{}
+	err = json.Unmarshal(body, &parse_resp)
+	if err != nil {
+		log.Error("error decoding response: %v", err)
+		if e, ok := err.(*json.SyntaxError); ok {
+			log.Error("syntax error at byte offset %d", e.Offset)
+		}
+		log.Error("response: %q", string(body))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"reason": "Internal Server Error",
+		})
+		return
+	}
+
+	splited_str := strings.FieldsFunc(parse_resp.Contents, func(r rune) bool {
+		return r == '*' || r == '○'
+	})
+
+	result_str := make([]string, 0)
+
+	result_str = append(result_str, strings.Split(splited_str[0], "-")...)
+	result_str = append(result_str, splited_str[1:]...)
+
+	c.String(resp.StatusCode, "%s", strings.Join(result_str, "@○"))
+
+}
+
+// 날씨 얻기
+func getWeather(c *gin.Context) {
+
+	// Query : [mid], midterm forecast, 중기예보 RSS(지역명)
+	mid := c.Query("mid")
+
+	// Query : [k1, k2, k3], Keyword, 검색 키워드(지역명)
+	k1 := c.Query("k1")
+	k2 := c.Query("k2")
+	k3 := c.Query("k3")
+
+	if len(k1) > 0 || len(k2) > 0 || len(k3) > 0 {
+		keywords := make([]string, 0)
+
+		if len(k1) > 0 {
+			keywords = append(keywords, k1)
+		}
+		if len(k2) > 0 {
+			keywords = append(keywords, k2)
+		}
+		if len(k3) > 0 {
+			keywords = append(keywords, k3)
+		}
+		weatherKeyword(c, keywords)
+
+	} else if len(mid) > 0 {
+		weatherMidterm(c, mid)
+
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"reason": "Bad Request",
 		})
 		return
 	}

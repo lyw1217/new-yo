@@ -42,15 +42,35 @@ function printWeatherHelp() {
   temp_str += "------------  날씨  ------------\n\u200b";
   temp_str += "현재 시간을 기준으로 날씨 정보를 알려줍니다.\n";
   temp_str += "- '/지금 (동네) 날씨'\n\t - 지금 날씨 조회\n";
+  temp_str += "- '/예보 (지역)'\n\t - 오늘의 기상 예보 조회\n";
   //temp_str += "'/오늘 (동네) 날씨'\n\t - 오늘 날씨 조회(미지원)\n";
   //temp_str += "'/내일 (동네) 날씨'\n\t - 내일 날씨 조회(미지원)\n";
   temp_str += "[예시]\n";
   temp_str += "\t/지금 서현 날씨\n";
+  temp_str += "\t/예보 서울\n";
   //temp_str += "\t/오늘 성남 분당 날씨(미지원)\n";
   //temp_str += "\t/내일 경기 하남 위례 날씨(미지원)\n";
   temp_str += "------------------------------\n";
   temp_str += "띄어쓰기로 명령어와 동네 키워드들을 구분해주세요.\n";
   temp_str += "동네 키워드는 최대 3개까지 가능합니다.\n";
+  temp_str += "예보 제공사 : 기상청";
+
+  return temp_str;
+}
+
+function printFcstHelp() {
+
+  let temp_str = "";
+  temp_str += "------------  예보  ------------\n\u200b";
+  temp_str += "오늘의 기상 중기 예보를 알려줍니다.\n";
+  temp_str += "- '/예보 (지역)'\n\t - 오늘의 기상 예보 조회\n";
+  temp_str += "[예시]\n";
+  temp_str += "\t/예보 서울\n";
+  temp_str += "------------------------------\n";
+  temp_str += "띄어쓰기로 명령어와 지역 키워드를 구분해주세요.\n";
+  temp_str += "지역 : 전국, 서울, 경기, 강원, 충북, 대전\n";
+  temp_str += "       세종, 충남, 전북, 광주, 전남, 대구\n";
+  temp_str += "       경북, 부산, 울산, 경남, 제주\n";
   temp_str += "예보 제공사 : 기상청";
 
   return temp_str;
@@ -178,8 +198,14 @@ function response(
         } else {
           resp += printMainHelp();
         }
-      } else if ( msg == "/날씨" ) {
+      }
+      
+      else if ( msg == "/날씨" ) {
         resp += printWeatherHelp();
+      }
+
+      else if ( msg == "/예보" ) {
+        resp += printFcstHelp();
       }
     } catch (error) {
       resp = "에러 발생.\n err : " + error;
@@ -209,7 +235,7 @@ const INTER = setInterval(() => {
         }
       }
 
-      Api.replyRoom("이영우", resp);  
+      Api.replyRoom("master", resp);  
     } catch (error) {
       resp = "";
     }

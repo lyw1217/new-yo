@@ -13,7 +13,7 @@ type CommCfg_t struct {
 	Media      []News_t `json:"news"`
 }
 
-type Contents struct {
+type Contents_t struct {
 	Paper   string `json:"paper"`
 	Content string `json:"content"`
 }
@@ -29,8 +29,13 @@ type FcstItem_t struct {
 	Ny        int    `json:"ny"`        // 예보지점 Y 좌표
 }
 
-type FcstContents struct {
+type FcstContents_t struct {
 	Contents []FcstItem_t `json:"contents"`
 	Status   int          `json:"status"`
 	Name     string       `json:"name"`
+}
+
+type FcstMidContents_t struct {
+	Contents string `json:"contents"`
+	Status   int    `json:"status"`
 }
