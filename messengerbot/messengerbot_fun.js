@@ -73,6 +73,8 @@ let drwNo = 0;
 let lottoUrl =
   "http://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=";
 let data;
+const url = "http://mumeog.site:30100";
+const roman_qry = "/romanization?query=";
 let words_list = getLearnedListArr();
 
 const MAX_LEARN_NUM = 500;
@@ -321,6 +323,17 @@ function response(
               b = DataBase.getDataBase(ban_sender_db);
               resp += "[밴 유저 목록]\n";
               resp += b;
+            }
+          }
+        } else if (msg.includes("/로마")) {
+          if (msg.substr(0, "/로마 ".length) == "/로마 ") {
+            const input_name_words = msg.substring("/로마 ".length).trim();
+            try {
+              data = Utils.parse(url + roman_qry + input_name_words).text();
+              //resp += data.split("@").join("\n");
+              resp += data;
+            } catch (error) {
+              resp += "로마자 변환을 하지 못했어요.";
             }
           }
         }

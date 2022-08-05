@@ -39,3 +39,12 @@ type FcstMidContents_t struct {
 	Contents string `json:"contents"`
 	Status   int    `json:"status"`
 }
+
+type AItems struct {
+	Name  string `json:"name"`
+	Score string `json:"score"`
+}
+type RomanContents_t struct {
+	Contents []AItems `json:"contents"`
+	Status   int      `json:"status"`
+}

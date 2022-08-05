@@ -93,10 +93,10 @@ function printMainHelp() {
 function printNewsHelp() {
   let temp_str = "";
   temp_str += "------------  뉴스  ------------\n\u200b";
-  temp_str += "- '/뉴스'\n\t 전체 조회\n";
-  temp_str += "- '/한경'\n\t 한국경제 Issue Today 조회\n";
-  temp_str += "- '/매경'\n\t 매일경제 매.세.지 조회\n";
-  temp_str += "- '/간추린'\n\t 간추린뉴스 조회";
+  temp_str += "○ '/뉴스'\n\t 전체 조회\n";
+  temp_str += "○ '/한경'\n\t 한국경제 Issue Today 조회\n";
+  temp_str += "○ '/매경'\n\t 매일경제 매.세.지 조회\n";
+  temp_str += "○ '/간추린'\n\t 간추린뉴스 조회";
 
   return temp_str;
 }
@@ -105,13 +105,13 @@ function printWeatherHelp() {
   let temp_str = "";
   temp_str += "------------  날씨  ------------\n\u200b";
   temp_str += "현재 시간을 기준으로 날씨 정보를 알려줍니다.\n";
-  temp_str += "- '/지금 (동네) 날씨'\n\t - 지금 날씨 조회\n";
-  temp_str += "- '/예보 (지역)'\n\t > 오늘의 기상 예보 조회\n";
+  temp_str += "○ '/지금 (동네) 날씨'\n    지금 날씨 조회\n";
+  temp_str += "○ '/예보 (지역)'\n    오늘의 기상 예보 조회\n";
   //temp_str += "'/오늘 (동네) 날씨'\n\t - 오늘 날씨 조회(미지원)\n";
   //temp_str += "'/내일 (동네) 날씨'\n\t - 내일 날씨 조회(미지원)\n";
   temp_str += "[예시]\n";
-  temp_str += "\t/지금 서현 날씨\n";
-  temp_str += "\t/예보 서울\n";
+  temp_str += "  /지금 서현 날씨\n";
+  temp_str += "  /예보 서울\n";
   //temp_str += "\t/오늘 성남 분당 날씨(미지원)\n";
   //temp_str += "\t/내일 경기 하남 위례 날씨(미지원)\n";
   temp_str += "--------------------------------\n";
@@ -126,9 +126,9 @@ function printFcstHelp() {
   let temp_str = "";
   temp_str += "------------  예보  ------------\n\u200b";
   temp_str += "오늘의 기상 중기 예보를 알려줍니다.\n";
-  temp_str += "- '/예보 (지역)'\n\t > 오늘의 기상 예보 조회\n";
+  temp_str += "○ '/예보 (지역)'\n\t  오늘의 기상 예보 조회\n";
   temp_str += "[예시]\n";
-  temp_str += "\t/예보 서울\n";
+  temp_str += "  /예보 서울\n";
   temp_str += "--------------------------------\n";
   temp_str += "띄어쓰기로 명령어와 지역 키워드를 구분해주세요.\n";
   temp_str += "지역 : 전국, 서울, 경기, 강원\n";
@@ -143,12 +143,14 @@ function printFcstHelp() {
 function printFunHelp() {
   let temp_str = "";
   temp_str += "------------  소소  ------------\n\u200b";
-  temp_str += "- '/로또' : 최근 로또 당첨번호 조회\n";
-  temp_str += "\t > '/로또 생성' : 랜덤 번호 생성\n";
-  temp_str += "- '/가르치기' : 단어 가르치기\n";
-  temp_str += "\t > '/가르치기 A=B' : A는 B라고 가르치기\n";
-  temp_str += "- '/학습제거' : 가르친 단어 잊게 하기\n";
-  temp_str += "\t > '/학습제거 A' : A라고 가르친 단어 제거";
+  temp_str += "○ '/로또' : 최근 로또 당첨번호 조회\n";
+  temp_str += "    '/로또 생성' : 랜덤 번호 생성\n";
+  temp_str += "○ '/가르치기' : 단어 가르치기\n";
+  temp_str += "    '/가르치기 A=B' : A는 B라고 가르치기\n";
+  temp_str += "○ '/학습제거' : 가르친 단어 잊게 하기\n";
+  temp_str += "    '/학습제거 A' : A라고 가르친 단어 제거\n";
+  temp_str += "○ '/로마' : 한글 인명-로마자 변환\n";
+  temp_str += "    '/로마 (이름)' : 한글 이름을 로마자로 변환";
 
   return temp_str;
 }
