@@ -48,3 +48,8 @@ type RomanContents_t struct {
 	Contents []AItems `json:"contents"`
 	Status   int      `json:"status"`
 }
+
+type PapagoContents_t struct {
+	Contents string `json:"contents"`
+	Status   int    `json:"status"`
+}

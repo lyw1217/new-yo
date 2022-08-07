@@ -331,3 +331,47 @@ func GetPapagoRomanization(query string) (string, error) {
 
 	return r, nil
 }
+
+func GetPapagoTranslate(text string) (string, error) {
+	req, err := http.NewRequest("POST", SCRAPER_URL+"/papago", nil)
+	if err != nil {
+		log.Error(err, "Err, Failed to NewRequest()")
+		return "", err
+	}
+
+	q := req.URL.Query()
+	q.Add("text", text)
+
+	req.URL.RawQuery = q.Encode()
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error(err, "Err, Failed to Get Request")
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err, "Err, Failed to ReadAll")
+		return "", err
+	}
+
+	parse_resp := PapagoContents_t{}
+	err = json.Unmarshal([]byte(body), &parse_resp)
+	if err != nil {
+		log.Error("error decoding response: ", err)
+		if e, ok := err.(*json.SyntaxError); ok {
+			log.Error("syntax error.", e.Error())
+		}
+		log.Error("response: ", string(body))
+		return "", err
+	}
+
+	return parse_resp.Contents, nil
+}

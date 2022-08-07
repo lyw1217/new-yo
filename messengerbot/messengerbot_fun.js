@@ -75,6 +75,7 @@ let lottoUrl =
 let data;
 const url = "http://mumeog.site:30100";
 const roman_qry = "/romanization?query=";
+const papago_qry = "/papago?text=";
 let words_list = getLearnedListArr();
 
 const MAX_LEARN_NUM = 500;
@@ -334,6 +335,16 @@ function response(
               resp += data;
             } catch (error) {
               resp += "로마자 변환을 하지 못했어요.";
+            }
+          }
+        } else if (msg.includes("/번역")) {
+          if (msg.substr(0, "/번역 ".length) == "/번역 ") {
+            const input_trans_words = msg.substring("/번역 ".length).trim();
+            try {
+              data = Utils.parse(url + papago_qry + input_trans_words).text();
+              resp += data;
+            } catch (error) {
+              resp += "파파고 번역을 하지 못했어요.";
             }
           }
         }

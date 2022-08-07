@@ -179,15 +179,48 @@ func getRomanization(c *gin.Context) {
 				"status": http.StatusInternalServerError,
 				"reason": "Internal Server Error",
 			})
+			return
 		}
 
 		if len(resp) > 0 {
 			c.String(http.StatusOK, "%s", resp)
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status": http.StatusBadRequest,
-				"reason": "Bad Request",
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": http.StatusInternalServerError,
+				"reason": "Internal Server Error",
 			})
+			return
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"reason": "Bad Request",
+		})
+		return
+	}
+}
+
+func getPapagoTranslate(c *gin.Context) {
+	// Query : text, 어떤 언어인지 확인할 텍스트
+	text := c.Query("text")
+	if len(text) > 0 {
+		resp, err := GetPapagoTranslate(text)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": http.StatusInternalServerError,
+				"reason": "Internal Server Error",
+			})
+			return
+		}
+
+		if len(resp) > 0 {
+			c.String(http.StatusOK, "%s", resp)
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": http.StatusInternalServerError,
+				"reason": "Internal Server Error",
+			})
+			return
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -213,4 +246,6 @@ func InitRoutes(r *gin.Engine) {
 	r.GET("/weather", getWeather)
 
 	r.GET("/romanization", getRomanization)
+
+	r.GET("/papago", getPapagoTranslate)
 }
