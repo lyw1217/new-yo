@@ -110,6 +110,9 @@ func weatherKeyword(c *gin.Context, keywords []string) {
 		q.Add(key, k)
 	}
 
+	auth := c.Query("auth")
+	q.Add("auth", auth)
+
 	// Query : Period, 0: 오늘, 1: 내일
 	p := c.Query("p")
 
@@ -208,7 +211,8 @@ func weatherMidterm(c *gin.Context, mid string) {
 	}
 
 	q := req.URL.Query()
-
+	auth := c.Query("auth")
+	q.Add("auth", auth)
 	q.Add("mid", mid)
 
 	req.URL.RawQuery = q.Encode()
@@ -271,7 +275,7 @@ func weatherMidterm(c *gin.Context, mid string) {
 
 }
 
-func encodeRomanization(query string, r RomanContents_t) (string) {
+func encodeRomanization(query string, r RomanContents_t) string {
 	/* TODO 로마자 표기법을 따르지 않으면서 많이 사용되고 있는 이름들을 어떻게 표현할지
 	result_str := make([]string, 0)
 
@@ -286,7 +290,7 @@ func encodeRomanization(query string, r RomanContents_t) (string) {
 	return fmt.Sprintf("%s을(를) 현행 로마자 표기법으로 바꾸면 %s", query, r.Contents[0].Name)
 }
 
-func GetPapagoRomanization(query string) (string, error) {
+func GetPapagoRomanization(query string, auth string) (string, error) {
 	req, err := http.NewRequest("GET", SCRAPER_URL+"/romanization", nil)
 	if err != nil {
 		log.Error(err, "Err, Failed to NewRequest()")
@@ -295,6 +299,7 @@ func GetPapagoRomanization(query string) (string, error) {
 
 	q := req.URL.Query()
 	q.Add("query", query)
+	q.Add("auth", auth)
 
 	req.URL.RawQuery = q.Encode()
 
@@ -332,7 +337,7 @@ func GetPapagoRomanization(query string) (string, error) {
 	return r, nil
 }
 
-func GetPapagoTranslate(text string) (string, error) {
+func GetPapagoTranslate(text string, auth string) (string, error) {
 	req, err := http.NewRequest("POST", SCRAPER_URL+"/papago", nil)
 	if err != nil {
 		log.Error(err, "Err, Failed to NewRequest()")
@@ -341,6 +346,7 @@ func GetPapagoTranslate(text string) (string, error) {
 
 	q := req.URL.Query()
 	q.Add("text", text)
+	q.Add("auth", auth)
 
 	req.URL.RawQuery = q.Encode()
 

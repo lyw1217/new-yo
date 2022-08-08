@@ -11,6 +11,7 @@ const scriptName = "newyo";
 
 let db_root = "newyo/db/";
 let comm_db = db_root + "comm/";
+let apikey_db = comm_db + "apikey";
 let admin_db = db_root + "comm/admin";
 let ban_sender_db = db_root + "comm/ban_sender";
 let room_db = db_root + "room/";
@@ -23,6 +24,8 @@ let article_qry = "/article?paper=";
 
 let admin = getAdminUser();
 let ban_sender = getBanUser();
+let apikey = getApiKey();
+let apikey_qry = "&auth=" + apikey;
 
 function isAdmin(sender) {
   admin = getAdminUser();
@@ -67,6 +70,18 @@ function getBanUser() {
   return ban_sender;
 }
 
+function getApiKey() {
+  const k = DataBase.getDataBase(apikey_db);
+  if (k == null) {
+    Log.e("API Key is Null. Check API Key DB!!", true);
+    return "";
+  } else {
+    apikey_qry = "&auth=" + k;
+  }
+  
+  return k;
+}
+
 function sendErrorAdmin(type, msg) {
   admin = getAdminUser();
   for (let a of admin) {
@@ -91,6 +106,8 @@ const onStartCompile = () => {
   }
 
   send_flag = true;
+
+  apikey = getApiKey();
 };
 
 let kimchi_count = 0;
@@ -175,7 +192,7 @@ function printFunHelp() {
   return temp_str;
 }
 
-function response(
+function responseFix(
   room,
   msg,
   sender,
@@ -224,7 +241,7 @@ function response(
       if (msg.includes("/뉴스")) {
         try {
           try {
-            data = Utils.parse(url + article_qry + "hankyung").text();
+            data = Utils.parse(url + article_qry + "hankyung" + apikey_qry).text();
             data = JSON.parse(data);
             resp +=
               "[ " +
@@ -235,7 +252,7 @@ function response(
           } catch (error) {}
   
           try {
-            data = Utils.parse(url + article_qry + "maekyung").text();
+            data = Utils.parse(url + article_qry + "maekyung" + apikey_qry).text();
             data = JSON.parse(data);
             resp +=
               "[ " +
@@ -246,7 +263,7 @@ function response(
           } catch (error) {}
   
           try {
-            data = Utils.parse(url + article_qry + "quicknews").text();
+            data = Utils.parse(url + article_qry + "quicknews" + apikey_qry).text();
             data = JSON.parse(data);
             resp +=
               "[ " +
@@ -266,7 +283,7 @@ function response(
       // 한경
       else if (msg.includes("/한경")) {
         try {
-          data = Utils.parse(url + article_qry + "hankyung").text();
+          data = Utils.parse(url + article_qry + "hankyung" + apikey_qry).text();
           data = JSON.parse(data);
           resp += data.contents[0].content;
         } catch (error) {
@@ -277,7 +294,7 @@ function response(
       // 매경
       else if (msg.includes("/매경")) {
         try {
-          data = Utils.parse(url + article_qry + "maekyung").text();
+          data = Utils.parse(url + article_qry + "maekyung" + apikey_qry).text();
           data = JSON.parse(data);
           resp += data.contents[0].content;
         } catch (error) {
@@ -288,7 +305,7 @@ function response(
       // 간추린뉴스
       else if (msg.includes("/간추린")) {
         try {
-          data = Utils.parse(url + article_qry + "quicknews").text();
+          data = Utils.parse(url + article_qry + "quicknews" + apikey_qry).text();
           data = JSON.parse(data);
           resp += data.contents[0].content;
         } catch (error) {
@@ -332,7 +349,7 @@ function response(
               } else {
                 DataBase.appendDataBase(subslist_db, sender + "\n");
                 resp +=
-                  "구독했어요. 내일부터 " +
+                  "구독했어요. 매일 아침 " +
                   subs_hour.toString() +
                   "시 " +
                   subs_min.toString() +
@@ -387,7 +404,7 @@ const INTER = setInterval(() => {
       send_flag = false;
       try {
         try {
-          data = Utils.parse(url + article_qry + "hankyung").text();
+          data = Utils.parse(url + article_qry + "hankyung" + apikey_qry).text();
           data = JSON.parse(data);
           resp +=
             "[ " +
@@ -398,7 +415,7 @@ const INTER = setInterval(() => {
         } catch (error) {}
 
         try {
-          data = Utils.parse(url + article_qry + "maekyung").text();
+          data = Utils.parse(url + article_qry + "maekyung" + apikey_qry).text();
           data = JSON.parse(data);
           resp +=
             "[ " +
@@ -409,7 +426,7 @@ const INTER = setInterval(() => {
         } catch (error) {}
 
         try {
-          data = Utils.parse(url + article_qry + "quicknews").text();
+          data = Utils.parse(url + article_qry + "quicknews" + apikey_qry).text();
           data = JSON.parse(data);
           resp +=
             "[ " +
@@ -450,3 +467,32 @@ function onStart(activity) {}
 function onResume(activity) {}
 function onPause(activity) {}
 function onStop(activity) {}
+
+function onNotificationPosted(sbn, sm) {
+  var packageName = sbn.getPackageName();
+  if (!packageName.startsWith("com.kakao.tal")) return;
+  var actions = sbn.getNotification().actions;
+  if (actions == null) return;
+  var userId = sbn.getUser().hashCode();
+  for (var n = 0; n < actions.length; n++) {
+      var action = actions[n];
+      if (action.getRemoteInputs() == null) continue;
+      var bundle = sbn.getNotification().extras;
+
+      var msg = bundle.get("android.text").toString();
+      var sender = bundle.getString("android.title");
+      var room = bundle.getString("android.subText");
+      if (room == null) room = bundle.getString("android.summaryText");
+      var isGroupChat = room != null;
+      if (room == null) room = sender;
+      var replier = new com.xfl.msgbot.script.api.legacy.SessionCacheReplier(packageName, action, room, false, "");
+      var icon = bundle.getParcelableArray("android.messages")[0].get("sender_person").getIcon().getBitmap();
+      var image = bundle.getBundle("android.wearable.EXTENSIONS");
+      if (image != null) image = image.getParcelable("background");
+      var imageDB = new com.xfl.msgbot.script.api.legacy.ImageDB(icon, image);
+      com.xfl.msgbot.application.service.NotificationListener.Companion.setSession(packageName, room, action);
+      if (this.hasOwnProperty("responseFix")) {
+          responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, userId != 0);
+      }
+  }
+}

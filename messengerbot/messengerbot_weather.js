@@ -11,12 +11,15 @@ const scriptName = "weather";
 
 let db_root = "newyo/db/";
 let comm_db = db_root + "comm/";
+let apikey_db = comm_db + "apikey";
 let admin_db = db_root + "comm/admin";
 let ban_sender_db = db_root + "comm/ban_sender";
 let room_db = db_root + "room/";
 
 let admin = getAdminUser();
 let ban_sender = getBanUser();
+let apikey = getApiKey();
+let apikey_qry = "&auth=" + apikey;
 
 function isAdmin(sender) {
   admin = getAdminUser();
@@ -61,6 +64,18 @@ function getBanUser () {
   return ban_sender;
 }
 
+function getApiKey() {
+  const k = DataBase.getDataBase(apikey_db);
+  if (k == null) {
+    Log.e("API Key is Null. Check API Key DB!!", true);
+    return "";
+  } else {
+    apikey_qry = "&auth=" + k;
+  }
+  
+  return k;
+}
+
 const onStartCompile = () => {
   a = DataBase.getDataBase(admin_db);
   if (a == null) {
@@ -74,6 +89,8 @@ const onStartCompile = () => {
   } else {
     ban_sender = b.split("\n");
   }
+
+  apikey = getApiKey();
 };
 
 let kimchi_count = 0;
@@ -151,7 +168,7 @@ function parseKeywords(input) {
   };
 }
 
-function response(
+function responseFix(
   room,
   msg,
   sender,
@@ -182,7 +199,7 @@ function response(
 
         if (keywords.response_data.length == 0) {
           const tod_params =
-            "&k1=" +
+            "k1=" +
             keywords.k[0] +
             "&k2=" +
             keywords.k[1] +
@@ -190,7 +207,7 @@ function response(
             keywords.k[2] +
             "&p=0";
           try {
-            data = Utils.parse(url + weather_qry + tod_params).text();
+            data = Utils.parse(url + weather_qry + tod_params + apikey_qry).text();
             resp += data.split("@").join("\n");
           } catch (error) {
             resp += "지역을 찾지 못했습니다.";
@@ -202,7 +219,7 @@ function response(
         if (input_fcst_keywords.length > 1) {
           try {
             data = Utils.parse(
-              url + weather_qry + "mid=" + input_fcst_keywords[1]
+              url + weather_qry + "mid=" + input_fcst_keywords[1] + apikey_qry
             ).text();
             resp += data.split("@").join("\n");
           } catch (error) {
@@ -233,3 +250,32 @@ function onStart(activity) {}
 function onResume(activity) {}
 function onPause(activity) {}
 function onStop(activity) {}
+
+function onNotificationPosted(sbn, sm) {
+  var packageName = sbn.getPackageName();
+  if (!packageName.startsWith("com.kakao.tal")) return;
+  var actions = sbn.getNotification().actions;
+  if (actions == null) return;
+  var userId = sbn.getUser().hashCode();
+  for (var n = 0; n < actions.length; n++) {
+      var action = actions[n];
+      if (action.getRemoteInputs() == null) continue;
+      var bundle = sbn.getNotification().extras;
+
+      var msg = bundle.get("android.text").toString();
+      var sender = bundle.getString("android.title");
+      var room = bundle.getString("android.subText");
+      if (room == null) room = bundle.getString("android.summaryText");
+      var isGroupChat = room != null;
+      if (room == null) room = sender;
+      var replier = new com.xfl.msgbot.script.api.legacy.SessionCacheReplier(packageName, action, room, false, "");
+      var icon = bundle.getParcelableArray("android.messages")[0].get("sender_person").getIcon().getBitmap();
+      var image = bundle.getBundle("android.wearable.EXTENSIONS");
+      if (image != null) image = image.getParcelable("background");
+      var imageDB = new com.xfl.msgbot.script.api.legacy.ImageDB(icon, image);
+      com.xfl.msgbot.application.service.NotificationListener.Companion.setSession(packageName, room, action);
+      if (this.hasOwnProperty("responseFix")) {
+          responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, userId != 0);
+      }
+  }
+}

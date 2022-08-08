@@ -17,13 +17,19 @@ func NotFoundPage(c *gin.Context) {
 
 // /article?paper=hankyung , /article?paper=maekyung , /article?paper=quicknews
 func getArticle(c *gin.Context) {
+	auth := c.Query("auth")
+	auth_qry := ""
+	if len(auth) > 0 {
+		auth_qry = fmt.Sprintf("&auth=%s", auth)
+	}
+
 	target := c.Query("paper")
 	contents := make([]Contents_t, 0)
 
 	switch target {
 	case "hankyung":
 		var data Contents_t
-		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
+		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung" + auth_qry)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -31,7 +37,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		if statusCode != http.StatusOK {
 			c.JSON(statusCode, gin.H{
 				"status": statusCode,
@@ -51,7 +57,7 @@ func getArticle(c *gin.Context) {
 
 	case "maekyung":
 		var data Contents_t
-		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=maekyung")
+		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=maekyung" + auth_qry)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -59,7 +65,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-	
+
 		if statusCode != http.StatusOK {
 			c.JSON(statusCode, gin.H{
 				"status": statusCode,
@@ -79,7 +85,7 @@ func getArticle(c *gin.Context) {
 
 	case "quicknews":
 		var data Contents_t
-		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=quicknews")
+		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=quicknews" + auth_qry)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -87,7 +93,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		if statusCode != http.StatusOK {
 			c.JSON(statusCode, gin.H{
 				"status": statusCode,
@@ -108,7 +114,7 @@ func getArticle(c *gin.Context) {
 	default:
 		/* hankyung */
 		var data Contents_t
-		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
+		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung" + auth_qry)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -116,7 +122,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		if statusCode != http.StatusOK {
 			c.JSON(statusCode, gin.H{
 				"status": statusCode,
@@ -130,7 +136,7 @@ func getArticle(c *gin.Context) {
 		contents = append(contents, data)
 
 		/* maekyung */
-		statusCode, resp, err = requestArticle(SCRAPER_URL + "/article?paper=maekyung")
+		statusCode, resp, err = requestArticle(SCRAPER_URL + "/article?paper=maekyung" + auth_qry)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -138,7 +144,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		if statusCode != http.StatusOK {
 			c.JSON(statusCode, gin.H{
 				"status": statusCode,
@@ -152,7 +158,7 @@ func getArticle(c *gin.Context) {
 		contents = append(contents, data)
 
 		/* quicknews */
-		statusCode, resp, err = requestArticle(SCRAPER_URL + "/article?paper=quicknews")
+		statusCode, resp, err = requestArticle(SCRAPER_URL + "/article?paper=quicknews" + auth_qry)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -160,7 +166,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		if statusCode != http.StatusOK {
 			c.JSON(statusCode, gin.H{
 				"status": statusCode,
@@ -168,7 +174,7 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-		
+
 		data.Paper = "간추린뉴스"
 		data.Content = fmt.Sprintf("%v", resp)
 		contents = append(contents, data)
@@ -218,10 +224,12 @@ func getWeather(c *gin.Context) {
 }
 
 func getRomanization(c *gin.Context) {
+	auth := c.Query("auth")
+
 	// Query : query, 로마자로 변환할 한글 이름
 	query := c.Query("query")
 	if len(query) > 0 {
-		resp, err := GetPapagoRomanization(query)
+		resp, err := GetPapagoRomanization(query, auth)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": http.StatusInternalServerError,
@@ -249,10 +257,12 @@ func getRomanization(c *gin.Context) {
 }
 
 func getPapagoTranslate(c *gin.Context) {
+	auth := c.Query("auth")
+
 	// Query : text, 어떤 언어인지 확인할 텍스트
 	text := c.Query("text")
 	if len(text) > 0 {
-		resp, err := GetPapagoTranslate(text)
+		resp, err := GetPapagoTranslate(text, auth)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": http.StatusInternalServerError,
