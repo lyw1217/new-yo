@@ -32,11 +32,11 @@ func requestGetDocument(url string) (*http.Response, error) {
 	return resp, err
 }
 
-func requestArticle(url string) (interface{}, error) {
+func requestArticle(url string) (int, interface{}, error) {
 	resp, err := requestGetDocument(url)
 	if err != nil {
 		log.Error(err, "Err. Failed to requestGetDocument")
-		return "", err
+		return resp.StatusCode, "", err
 	}
 
 	bytes, _ := ioutil.ReadAll(resp.Body)
@@ -46,10 +46,10 @@ func requestArticle(url string) (interface{}, error) {
 	e := json.Unmarshal(bytes, &jsonData) // 이게 파싱하는 구문.
 	if e != nil {
 		log.Error(err, "Err. Failed to json.Unmarshal")
-		return "", err
+		return resp.StatusCode, "", err
 	}
 
-	return jsonData["contents"], err
+	return resp.StatusCode, jsonData["contents"], err
 }
 
 func ParseWeather(body []FcstItem_t, name string) string {

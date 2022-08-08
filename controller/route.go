@@ -23,11 +23,19 @@ func getArticle(c *gin.Context) {
 	switch target {
 	case "hankyung":
 		var data Contents_t
-		resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
+		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
 				"reason": "Internal Server Error",
+			})
+			break
+		}
+		
+		if statusCode != http.StatusOK {
+			c.JSON(statusCode, gin.H{
+				"status": statusCode,
+				"reason": resp,
 			})
 			break
 		}
@@ -43,11 +51,19 @@ func getArticle(c *gin.Context) {
 
 	case "maekyung":
 		var data Contents_t
-		resp, err := requestArticle(SCRAPER_URL + "/article?paper=maekyung")
+		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=maekyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
 				"reason": "Internal Server Error",
+			})
+			break
+		}
+	
+		if statusCode != http.StatusOK {
+			c.JSON(statusCode, gin.H{
+				"status": statusCode,
+				"reason": resp,
 			})
 			break
 		}
@@ -63,11 +79,19 @@ func getArticle(c *gin.Context) {
 
 	case "quicknews":
 		var data Contents_t
-		resp, err := requestArticle(SCRAPER_URL + "/article?paper=quicknews")
+		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=quicknews")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
 				"reason": "Internal Server Error",
+			})
+			break
+		}
+		
+		if statusCode != http.StatusOK {
+			c.JSON(statusCode, gin.H{
+				"status": statusCode,
+				"reason": resp,
 			})
 			break
 		}
@@ -84,11 +108,19 @@ func getArticle(c *gin.Context) {
 	default:
 		/* hankyung */
 		var data Contents_t
-		resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
+		statusCode, resp, err := requestArticle(SCRAPER_URL + "/article?paper=hankyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
 				"reason": "Internal Server Error",
+			})
+			break
+		}
+		
+		if statusCode != http.StatusOK {
+			c.JSON(statusCode, gin.H{
+				"status": statusCode,
+				"reason": resp,
 			})
 			break
 		}
@@ -98,11 +130,19 @@ func getArticle(c *gin.Context) {
 		contents = append(contents, data)
 
 		/* maekyung */
-		resp, err = requestArticle(SCRAPER_URL + "/article?paper=maekyung")
+		statusCode, resp, err = requestArticle(SCRAPER_URL + "/article?paper=maekyung")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
 				"reason": "Internal Server Error",
+			})
+			break
+		}
+		
+		if statusCode != http.StatusOK {
+			c.JSON(statusCode, gin.H{
+				"status": statusCode,
+				"reason": resp,
 			})
 			break
 		}
@@ -112,7 +152,7 @@ func getArticle(c *gin.Context) {
 		contents = append(contents, data)
 
 		/* quicknews */
-		resp, err = requestArticle(SCRAPER_URL + "/article?paper=quicknews")
+		statusCode, resp, err = requestArticle(SCRAPER_URL + "/article?paper=quicknews")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "fail",
@@ -120,7 +160,15 @@ func getArticle(c *gin.Context) {
 			})
 			break
 		}
-
+		
+		if statusCode != http.StatusOK {
+			c.JSON(statusCode, gin.H{
+				"status": statusCode,
+				"reason": resp,
+			})
+			break
+		}
+		
 		data.Paper = "간추린뉴스"
 		data.Content = fmt.Sprintf("%v", resp)
 		contents = append(contents, data)

@@ -14,13 +14,19 @@ let comm_db = db_root + "comm/";
 let admin_db = db_root + "comm/admin";
 let ban_sender_db = db_root + "comm/ban_sender";
 let room_db = db_root + "room/";
+let subslist_db = db_root + "subslist";
+
+const subs_hour = 8;
+const subs_min = 30;
+let url = "http://mumeog.site:30100";
+let article_qry = "/article?paper=";
 
 let admin = getAdminUser();
 let ban_sender = getBanUser();
 
 function isAdmin(sender) {
   admin = getAdminUser();
-  
+
   if (admin.indexOf(sender.trim()) > -1) {
     return true;
   }
@@ -36,7 +42,7 @@ function isBanned(sender) {
   return false;
 }
 
-function getAdminUser () {
+function getAdminUser() {
   const a = DataBase.getDataBase(admin_db);
   if (a == null) {
     DataBase.setDataBase(admin_db, "master\n");
@@ -48,7 +54,7 @@ function getAdminUser () {
   return admin;
 }
 
-function getBanUser () {
+function getBanUser() {
   const b = DataBase.getDataBase(ban_sender_db);
   if (b == null) {
     DataBase.setDataBase(ban_sender_db, "김지훈\n");
@@ -61,12 +67,19 @@ function getBanUser () {
   return ban_sender;
 }
 
+function sendErrorAdmin(type, msg) {
+  admin = getAdminUser();
+  for (let a of admin) {
+    Api.replyRoom(a, type + "에서 에러 발생: " + msg);
+  }
+}
+
 const onStartCompile = () => {
   clearInterval(INTER);
 
   a = DataBase.getDataBase(admin_db);
   if (a == null) {
-    DataBase.setDataBase(admin_db, "masterYW\n");
+    DataBase.setDataBase(admin_db, "master\n");
   }
   admin = a.split("\n");
 
@@ -76,6 +89,8 @@ const onStartCompile = () => {
   } else {
     ban_sender = b.split("\n");
   }
+
+  send_flag = true;
 };
 
 let kimchi_count = 0;
@@ -96,7 +111,10 @@ function printNewsHelp() {
   temp_str += "○ '/뉴스'\n\t 전체 조회\n";
   temp_str += "○ '/한경'\n\t 한국경제 Issue Today 조회\n";
   temp_str += "○ '/매경'\n\t 매일경제 매.세.지 조회\n";
-  temp_str += "○ '/간추린'\n\t 간추린뉴스 조회";
+  temp_str += "○ '/간추린'\n\t 간추린뉴스 조회\n";
+  temp_str += "--------------------------------\n";
+  temp_str += "○ '/구독'\n\t 개인톡으로 매일 8시 30분에 뉴스를 제공\n";
+  temp_str += "○ '/구독해제'\n\t 뉴스 구독 해제";
 
   return temp_str;
 }
@@ -166,8 +184,6 @@ function response(
   imageDB,
   packageName
 ) {
-  let url = "http://mumeog.site:30100";
-  let article_qry = "/article?paper=";
   let data;
   let resp = "";
   let run = DataBase.getDataBase(comm_db + "run");
@@ -207,17 +223,43 @@ function response(
     try {
       if (msg.includes("/뉴스")) {
         try {
-          data = Utils.parse(url + "/article").text();
-          data = JSON.parse(data);
-          for (let i = 0; i < data.contents.length; i++) {
+          try {
+            data = Utils.parse(url + article_qry + "hankyung").text();
+            data = JSON.parse(data);
             resp +=
-              "[ " + data.contents[i].paper + " ]\n" + data.contents[i].content;
-            if (i != data.contents.length - 1) {
-              resp += "\n\n";
-            }
+              "[ " +
+              data.contents[0].paper +
+              " ]\n" +
+              data.contents[0].content +
+              "\n\n";
+          } catch (error) {}
+  
+          try {
+            data = Utils.parse(url + article_qry + "maekyung").text();
+            data = JSON.parse(data);
+            resp +=
+              "[ " +
+              data.contents[0].paper +
+              " ]\n" +
+              data.contents[0].content +
+              "\n\n";
+          } catch (error) {}
+  
+          try {
+            data = Utils.parse(url + article_qry + "quicknews").text();
+            data = JSON.parse(data);
+            resp +=
+              "[ " +
+              data.contents[0].paper +
+              " ]\n" +
+              data.contents[0].content;
+          } catch (error) {}
+
+          if (resp.length == 0) {
+            resp += "오늘자 요약 뉴스가 없어요.";
           }
         } catch (error) {
-          resp += "뉴스를 조회하지 못했습니다.";
+          resp += "뉴스를 조회하지 못했어요.";
         }
       }
 
@@ -226,9 +268,9 @@ function response(
         try {
           data = Utils.parse(url + article_qry + "hankyung").text();
           data = JSON.parse(data);
-          resp = data.contents[0].content;
+          resp += data.contents[0].content;
         } catch (error) {
-          resp += "뉴스를 조회하지 못했습니다.";
+          resp += "뉴스를 조회하지 못했어요.";
         }
       }
 
@@ -237,9 +279,9 @@ function response(
         try {
           data = Utils.parse(url + article_qry + "maekyung").text();
           data = JSON.parse(data);
-          resp = data.contents[0].content;
+          resp += data.contents[0].content;
         } catch (error) {
-          resp += "뉴스를 조회하지 못했습니다.";
+          resp += "뉴스를 조회하지 못했어요.";
         }
       }
 
@@ -248,9 +290,59 @@ function response(
         try {
           data = Utils.parse(url + article_qry + "quicknews").text();
           data = JSON.parse(data);
-          resp = data.contents[0].content;
+          resp += data.contents[0].content;
         } catch (error) {
-          resp += "뉴스를 조회하지 못했습니다.";
+          resp += "뉴스를 조회하지 못했어요.";
+        }
+      }
+
+      // 구독
+      else if (msg.includes("/구독")) {
+        if (isGroupChat) {
+          resp += "구독/구독해지는 개인톡으로 해주세요.";
+        } else {
+          try {
+            if (
+              msg.includes("해지") ||
+              msg.includes("삭제") ||
+              msg.includes("해제")
+            ) {
+              let s = DataBase.getDataBase(subslist_db);
+              let subs_list = s.split("\n");
+              for (var i = 0; i < subs_list.length; i++) {
+                if (subs_list[i] == sender) {
+                  subs_list.splice(i, 1);
+                  break;
+                }
+              }
+              DataBase.setDataBase(subslist_db, subs_list.join("\n"));
+              resp += "구독을 해지했어요. ";
+            } else {
+              let s = DataBase.getDataBase(subslist_db);
+              let subs_list = s.split("\n");
+              let subs_flag = false;
+              for (var j = 0; j < subs_list.length; j++) {
+                if (subs_list[j] == sender) {
+                  subs_flag = true;
+                  break;
+                }
+              }
+              if (subs_flag) {
+                resp += "이미 구독 중이에요.";
+              } else {
+                DataBase.appendDataBase(subslist_db, sender + "\n");
+                resp +=
+                  "구독했어요. 내일부터 " +
+                  subs_hour.toString() +
+                  "시 " +
+                  subs_min.toString() +
+                  "분에 뉴스를 보내드릴게요.";
+              }
+            }
+          } catch (error) {
+            resp += "실패했어요. 다시 시도해주세요.";
+            sendErrorAdmin("구독", error);
+          }
         }
       }
 
@@ -283,32 +375,66 @@ function response(
   }
 }
 
+let send_flag = true;
 const INTER = setInterval(() => {
   date = new Date();
-  let url = "http://mumeog.site:30100/article";
   let data;
   let resp = "";
 
-  if (
-    date.getHours() == 8 &&
-    date.getMinutes() == 30 &&
-    date.getSeconds() == 0
-  ) {
-    try {
-      data = Utils.parse(url).text();
-      data = JSON.parse(data);
-      for (let i = 0; i < data.contents.length; i++) {
-        resp +=
-          "[ " + data.contents[i].paper + " ]\n" + data.contents[i].content;
-        if (i != data.contents.length - 1) {
-          resp += "\n\n";
-        }
-      }
+  if (date.getHours() == subs_hour && date.getMinutes() == subs_min) {
+    if (send_flag) {
+      Log.d("구독 전송 시도");
+      send_flag = false;
+      try {
+        try {
+          data = Utils.parse(url + article_qry + "hankyung").text();
+          data = JSON.parse(data);
+          resp +=
+            "[ " +
+            data.contents[0].paper +
+            " ]\n" +
+            data.contents[0].content +
+            "\n\n";
+        } catch (error) {}
 
-      Api.replyRoom("masterYW", resp);
-    } catch (error) {
-      resp = "";
+        try {
+          data = Utils.parse(url + article_qry + "maekyung").text();
+          data = JSON.parse(data);
+          resp +=
+            "[ " +
+            data.contents[0].paper +
+            " ]\n" +
+            data.contents[0].content +
+            "\n\n";
+        } catch (error) {}
+
+        try {
+          data = Utils.parse(url + article_qry + "quicknews").text();
+          data = JSON.parse(data);
+          resp +=
+            "[ " +
+            data.contents[0].paper +
+            " ]\n" +
+            data.contents[0].content;
+        } catch (error) {}
+
+        if (resp.length > 0) {
+          let ssl = DataBase.getDataBase(subslist_db);
+          let subs_send_list = ssl.split("\n");
+          for (let ss of subs_send_list) {
+            Log.d(ss + "에게 구독 전송 완료");
+            Api.replyRoom(ss, resp);
+          }
+        }
+      } catch (error) {
+        Log.e("전송 실패");
+        resp = "";
+      }
     }
+  }
+
+  if (date.getHours() == subs_hour && date.getMinutes() == subs_min + 1) {
+    send_flag = true;
   }
 }, 1000);
 
