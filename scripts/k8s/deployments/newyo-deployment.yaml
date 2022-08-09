@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: newyo-deployment
+  namespace: test
+  labels:
+    app: newyo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: newyo
+  template:
+    metadata:
+      labels:
+        app: newyo
+    spec:
+      containers:
+      - name: newyo
+        image: lyw1217/newyo:latest
+        env:
+        - name: "PORT"
+          value: "30100"
+        ports:
+        - containerPort: 30100
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
