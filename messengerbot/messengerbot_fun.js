@@ -406,8 +406,8 @@ function responseFix(
               resp += "[ 오늘의 " + msg.slice(4) + " 운세 ]\n";
               resp += jsoup_resp.select('._cs_fortune_text').first().text();
               
-              Log.d(jsoup_resp.select('infors').hasClass('lst_infor'), true);
-              if ( jsoup_resp.select('infors').hasClass('lst_infor') ) {
+              Log.d(jsoup_resp.select('.lst_infor').isEmpty(), true);
+              if ( !jsoup_resp.select('.lst_infor').isEmpty() ) {
                 lst_info = jsoup_resp.select('.lst_infor').first() ;
                 dt = lst_info.select('dt').eachText();
                 dd = lst_info.select('dd').eachText();
