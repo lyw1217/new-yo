@@ -21,6 +21,8 @@ let ban_sender = getBanUser();
 let apikey = getApiKey();
 let apikey_qry = "&auth=" + apikey;
 
+let Lw = '\u200b'.repeat(500);
+
 function isAdmin(sender) {
   admin = getAdminUser();
 
@@ -80,6 +82,23 @@ const onStartCompile = () => {
   admin = getAdminUser();
   ban_sender = getBanUser();
   apikey = getApiKey();
+};
+
+/* https://cafe.naver.com/nameyee/32361 */
+const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function() {
+    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
+        if( /[ㄱ-힣]/.test(point) ) {
+            const pointLen = point.normalize('NFD').split('').length;
+            const find = Postposition.find( b => b[0] == position );
+            if( find ) {
+                return point + find[pointLen-2];
+            } else return point + position;
+        } else {
+            return str;
+        }
+    })
+    return content;
 };
 
 let fun_db = db_root + "fun/";
@@ -164,7 +183,7 @@ function responseFix(
       resp += DataBase.getDataBase(learn_db + msg);
     } else {
       try {
-        if (msg.includes("/로또")) {
+        if (msg.startsWith("ㅇ로또")) {
           if (msg.includes("생성")) {
             let numbers = new Set();
             while (numbers.size < 6) {
@@ -211,11 +230,11 @@ function responseFix(
               resp += "로또 회차 정보를 조회하지 못했어요.";
             }
           }
-        } else if (msg.includes("/가르치기")) {
+        } else if (msg.startsWith("ㅇ가르치기")) {
           if (msg.includes("영우")) {
             resp += "어허!";
-          } else if (msg != "/가르치기 ") {
-            const input_learn_words = msg.substring("/가르치기 ".length).trim();
+          } else if (msg != "ㅇ가르치기 ") {
+            const input_learn_words = msg.substring("ㅇ가르치기 ".length).trim();
             if (input_learn_words.includes("=")) {
               const words = input_learn_words.split("=");
               const word1 = words[0].trim();
@@ -240,21 +259,23 @@ function responseFix(
                   } else {
                     DataBase.setDataBase(learn_db + word1, word2);
                     DataBase.appendDataBase(learn_db_list, word1 + "\n");
-                    resp += word1 + "을(를) ";
-                    resp += word2 + "(으)로 학습했어요.";
+                    resp += word1 + "$를 ";
+                    resp += word2 + "$로 학습했어요.";
+                    resp = resp.postposition();
                   }
                 } else {
-                  resp += word1 + "은(는) 이미 ";
+                  resp += word1 + "$는 이미 ";
                   resp +=
                     DataBase.getDataBase(learn_db + word1) +
-                    "(으)로 학습되어 있어요.";
+                    "$로 학습되어 있어요.";
+                  resp = resp.postposition();
                 }
               }
             }
           }
-        } else if (msg.includes("/학습제거")) {
-          if (msg.substr(0, "/학습제거 ".length) == "/학습제거 ") {
-            const input_del_words = msg.substring("/학습제거 ".length).trim();
+        } else if (msg.startsWith("ㅇ학습제거")) {
+          if (msg.substr(0, "ㅇ학습제거 ".length) == "ㅇ학습제거 ") {
+            const input_del_words = msg.substring("ㅇ학습제거 ".length).trim();
             let db_word = DataBase.getDataBase(learn_db + input_del_words);
             if (db_word != null) {
               try {
@@ -273,7 +294,8 @@ function responseFix(
                     resp +=
                       "제거할 " +
                       input_del_words +
-                      "이(가) list에 존재하지 않아요.";
+                      "가 list에 존재하지 않아요.";
+                    resp = resp.postposition();
                   }
                 } else {
                   resp +=
@@ -288,10 +310,10 @@ function responseFix(
               resp += input_del_words + " 단어는 학습하지 않았어요.";
             }
           }
-        } else if (msg.includes("/학습리스트") && isAdmin(sender)) {
+        } else if (msg.startsWith("ㅇ학습리스트") && isAdmin(sender)) {
           if (msg.includes("제거")) {
             const del_count = parseInt(
-              msg.substring("/학습리스트 제거 ".length).trim()
+              msg.substring("ㅇ학습리스트 제거 ".length).trim()
             );
             words_list = getLearnedListArr();
             if (words_list.length > 0) {
@@ -314,7 +336,7 @@ function responseFix(
               resp += "학습한 내용이 없어요.";
             }
           }
-        } else if (msg.includes("/루트") && isAdmin(sender)) {
+        } else if (msg.startsWith("ㅇ루트") && isAdmin(sender)) {
           if (msg.includes("밴")) {
             if (msg.includes("추가")) {
               const input_add_user = msg.split(" ");
@@ -342,26 +364,68 @@ function responseFix(
               resp += b;
             }
           }
-        } else if (msg.includes("/로마")) {
-          if (msg.substr(0, "/로마 ".length) == "/로마 ") {
-            const input_name_words = msg.substring("/로마 ".length).trim();
+        } else if (msg.startsWith("ㅇ로마")) {
+          if (msg.substr(0, "ㅇ로마 ".length) == "ㅇ로마 ") {
+            const input_name_words = msg.substring("ㅇ로마 ".length).trim();
             try {
               data = Utils.parse(url + roman_qry + input_name_words + apikey_qry).text();
-              //resp += data.split("@").join("\n");
               resp += data;
             } catch (error) {
               resp += "로마자 변환을 하지 못했어요.";
             }
           }
-        } else if (msg.includes("/번역")) {
-          if (msg.substr(0, "/번역 ".length) == "/번역 ") {
-            const input_trans_words = msg.substring("/번역 ".length).trim();
+        } else if (msg.startsWith("ㅇ번역")) {
+          if (msg.substr(0, "ㅇ번역 ".length) == "ㅇ번역 ") {
+            const input_trans_words = msg.substring("ㅇ번역 ".length).trim();
             try {
               data = Utils.parse(url + papago_qry + input_trans_words + apikey_qry).text();
               resp += data;
             } catch (error) {
               resp += "파파고 번역을 하지 못했어요.";
             }
+          }
+        }
+
+        else if (msg.startsWith("ㅇ오점무")) {
+          if (msg.substr(0, "ㅇ오점무 ".length) == "ㅇ오점무 ") {
+            const input_ojeommu_words = msg.substring("ㅇ오점무 ".length).trim();
+            try {
+              data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_ojeommu_words + apikey_qry).text();
+              resp += data.split("@").join("\n");
+            } catch (error) {
+              resp += "조건에 맞는 맛집을 구하지 못했어요.";
+            }
+          }
+        }
+
+        else if (msg.startsWith('ㅇ운세 ')) {
+          try {
+            jsoup_resp = org.jsoup.Jsoup.connect('http://search.naver.com/search.naver?query=' + msg.slice(4) + '+운세').get();
+
+            if ( jsoup_resp.select('.api_title').first().text() == "운세" ) {
+              resp += "[ 오늘의 " + msg.slice(4) + " 운세 ]\n";
+              resp += jsoup_resp.select('._cs_fortune_text').first().text();
+              
+              Log.d(jsoup_resp.select('infors').hasClass('lst_infor'), true);
+              if ( jsoup_resp.select('infors').hasClass('lst_infor') ) {
+                lst_info = jsoup_resp.select('.lst_infor').first() ;
+                dt = lst_info.select('dt').eachText();
+                dd = lst_info.select('dd').eachText();
+
+                resp += "\n" + Lw + "\n";
+                for ( let i = 0; i < dt.length && i < dd.length; i++ ) {
+                    resp += dt[i] + " | " ;
+                    resp += dd[i] + "\n" ;
+                }
+              }            
+            } else {
+              resp = "";
+              resp += "운세 정보를 가져오지 못했어요.";
+            }
+          } catch (error) {
+            Log.e(error, true);
+            resp = "";
+            resp += "운세 정보를 가져오지 못했어요.";
           }
         }
       } catch (error) {
