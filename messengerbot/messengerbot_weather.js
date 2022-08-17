@@ -21,6 +21,8 @@ let ban_sender = getBanUser();
 let apikey = getApiKey();
 let apikey_qry = "&auth=" + apikey;
 
+let Lw = '\u200b'.repeat(500);
+
 function isAdmin(sender) {
   admin = getAdminUser();
   
@@ -189,7 +191,7 @@ function responseFix(
 
   if (run == "t") {
     try {
-      if (msg.includes("/지금") && msg.includes("날씨")) {
+      if (msg.startsWith("ㅇ지금") && msg.includes("날씨")) {
         const input_now_keywords = msg.split(" ");
         if (input_now_keywords.length < 3) {
           return;
@@ -213,7 +215,7 @@ function responseFix(
             resp += "지역을 찾지 못했습니다.";
           }
         }
-      } else if (msg.includes("/예보")) {
+      } else if (msg.includes("ㅇ예보")) {
         const input_fcst_keywords = msg.split(" ");
 
         if (input_fcst_keywords.length > 1) {
@@ -221,9 +223,11 @@ function responseFix(
             data = Utils.parse(
               url + weather_qry + "mid=" + input_fcst_keywords[1] + apikey_qry
             ).text();
-            resp += data.split("@").join("\n");
+            split_data = data.split("@");
+            split_data.splice(1,0,Lw);
+            resp += split_data.join("\n");
           } catch (error) {
-            resp += "'/예보' 로 가능한 지역을 확인해보세요.";
+            resp += "'ㅇ예보' 를 입력해서 지역을 확인해보세요.";
             Log.d(error, true);
           }
         }
