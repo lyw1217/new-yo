@@ -112,6 +112,23 @@ const onStartCompile = () => {
   apikey = getApiKey();
 };
 
+/* https://cafe.naver.com/nameyee/32361 */
+const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function() {
+    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
+        if( /[ㄱ-힣]/.test(point) ) {
+            const pointLen = point.normalize('NFD').split('').length;
+            const find = Postposition.find( b => b[0] == position );
+            if( find ) {
+                return point + find[pointLen-2];
+            } else return point + position;
+        } else {
+            return str;
+        }
+    })
+    return content;
+};
+
 let kimchi_count = 0;
 
 function printMainHelp() {
