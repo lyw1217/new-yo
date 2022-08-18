@@ -217,6 +217,23 @@ function printFunHelp() {
   return temp_str;
 }
 
+function printOjeomMuHelp() {
+  let temp_str = "";
+  temp_str += "------  오점무 카테고리  ------\n";
+  temp_str += "◻ 아무거나\t\t\t◻ 한식\n";
+  temp_str += "◻ 중식\t\t\t\t\t◻ 일식\n";
+  temp_str += "◻ 양식\t\t\t\t\t◻ 분식\n";
+  temp_str += "◻ 아시아음식\t\t◻ 도시락\n";
+  temp_str += "◻ 육류 / 고기\t\t◻ 치킨\n";
+  temp_str += "◻ 패스트푸드\t\t◻ 술집\n";
+  temp_str += "-------------------------------\n";
+  temp_str += "- 'ㅇ오점무 {지역}@{카테고리}'\n";
+  temp_str += "- 예시 >  'ㅇ오점무 판교역@고기'\n";
+  temp_str += "- 기본 값은 '아무거나' 입니다.";
+
+  return temp_str;
+}
+
 function getDataTimeStr() {
   let d = new Date();
   return (
@@ -462,6 +479,9 @@ function responseFix(
         resp += printWeatherHelp();
       } else if (msg == "ㅇ예보") {
         resp += printFcstHelp();
+      }
+      else if (msg == "ㅇ오점무") {
+        resp += printOjeomMuHelp();
       }
     } catch (error) {
       resp = "에러 발생.\n err : " + error;

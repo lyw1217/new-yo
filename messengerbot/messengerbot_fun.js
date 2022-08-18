@@ -161,6 +161,39 @@ function getLearnedListArr() {
   return db_word.split("\n");
 }
 
+function parseCategory(c) {
+	switch (c) {
+	case "아무거나":
+		return "anything";
+	case "한식":
+		return "korea";
+	case "중식":
+		return "china";
+	case "일식":
+		return "japan";
+	case "양식":
+		return "western";
+	case "분식":
+		return "flour";
+	case "아시아음식":
+		return "asia";
+	case "도시락":
+		return "lunchbox";
+  case "육류":
+    return "meat";
+  case "고기":
+    return "meat";
+	case "치킨":
+		return "chicken";
+	case "패스트푸드":
+		return "fastfood";
+	case "술집":
+		return "bar";
+	default:
+		return "anything";
+	}
+}
+
 function responseFix(
   room,
   msg,
@@ -388,9 +421,13 @@ function responseFix(
 
         else if (msg.startsWith("ㅇ오점무")) {
           if (msg.substr(0, "ㅇ오점무 ".length) == "ㅇ오점무 ") {
-            const input_ojeommu_words = msg.substring("ㅇ오점무 ".length).trim();
+            const input_words = msg.substring("ㅇ오점무 ".length).trim();
+            if ( input_words.includes("@") ) {
+              input_ojeommu_words = input_words.split("@")[0];
+              input_cat_words = input_words.split("@")[1];
+            }
             try {
-              data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_ojeommu_words + apikey_qry).text();
+              data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_ojeommu_words + "&cat=" + parseCategory(input_cat_words) + apikey_qry).text();
               resp += data.split("@").join("\n");
             } catch (error) {
               resp += "조건에 맞는 맛집을 구하지 못했어요.";
@@ -406,7 +443,6 @@ function responseFix(
               resp += "[ 오늘의 " + msg.slice(4) + " 운세 ]\n";
               resp += jsoup_resp.select('._cs_fortune_text').first().text();
               
-              Log.d(jsoup_resp.select('.lst_infor').isEmpty(), true);
               if ( !jsoup_resp.select('.lst_infor').isEmpty() ) {
                 lst_info = jsoup_resp.select('.lst_infor').first() ;
                 dt = lst_info.select('dt').eachText();
