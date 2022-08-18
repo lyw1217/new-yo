@@ -425,12 +425,65 @@ function responseFix(
             if ( input_words.includes("@") ) {
               input_ojeommu_words = input_words.split("@")[0];
               input_cat_words = input_words.split("@")[1];
+            } else {
+              input_ojeommu_words = input_words;
+              input_cat_words = "";
             }
+
             try {
               data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_ojeommu_words + "&cat=" + parseCategory(input_cat_words) + apikey_qry).text();
-              resp += data.split("@").join("\n");
+              data = JSON.parse(data);
+              
+              date = new Date();
+              if ( date.getHours() > 15 && date.getHours() < 21 ) {
+                tit = "오늘 저녁은 '" + data.hdr + "' 어떠세요?";
+              } else if ( date.getHours() > 22 && date.getHours() < 8) {
+                tit = "오늘 야식은 '" + data.hdr + "' 어떠세요?";
+              } else {
+                tit = "오늘 점심은 '" + data.hdr + "' 어떠세요?";
+              }
+              ctx = data.place + "$로부터 거리는 약 " + data.d + "m 에요.";
+              try {
+                jsoup_resp = org.jsoup.Jsoup.connect(data.lnk + "?service=search_pc").get();
+                Log.d(jsoup_resp);
+                thu = jsoup_resp.select("meta[property=og:image]").first().attr("content").toString();
+                Log.d(thu);  
+              } catch (error) {
+                thu = "";
+                Log.d(error);
+              }
+              
+              if (Bridge.isAllowed("stock")) {
+                Bridge.getScopeOf("stock").Kakao.sendLink(
+                  room,
+                  {
+                    template_id: 81646,
+                    template_args: {
+                      "HDR": data.hdr,
+                      "TIT": tit,
+                      "CTX": ctx.postposition(),
+                      "LNK": data.lnk,
+                      "CAT": data.cat,
+                      "THU": thu,
+                    },
+                  },
+                  "custom"
+                )
+                  .then((e) => {
+                  })
+                  .catch((e) => {
+                    resp += data.hdr + "\n";
+                    resp += data.ctx.postposition() + "\n";
+                    resp += data.lnk;
+                    replier.reply(resp);
+                  });
+              }
+              
             } catch (error) {
               resp += "조건에 맞는 맛집을 구하지 못했어요.";
+              if (error != null ) {
+                Log.e(error);
+              }
             }
           }
         }

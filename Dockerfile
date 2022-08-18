@@ -27,7 +27,11 @@ RUN apk --no-cache add tzdata && \
 
 WORKDIR /usr/src/app
 
-COPY --chown=0:0 --from=builder /usr/local/bin/newyo /usr/local/bin/newyo
+COPY --chown=0:0 --from=builder /usr/src/app/cfg		/usr/src/app/cfg
+COPY --chown=0:0 --from=builder /usr/src/app/log		/usr/src/app/log
+COPY --chown=0:0 --from=builder /usr/src/app/go.mod		/usr/src/app/go.mod
+COPY --chown=0:0 --from=builder /usr/src/app/go.sum		/usr/src/app/go.sum
+COPY --chown=0:0 --from=builder /usr/local/bin/newyo	/usr/local/bin/newyo
 
 EXPOSE ${PORT}
 
