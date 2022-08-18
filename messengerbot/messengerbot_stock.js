@@ -12,14 +12,20 @@ const scriptName = "fun";
 let db_root = "newyo/db/";
 let comm_db = db_root + "comm/";
 let apikey_db = comm_db + "apikey";
+let kakao_apikey_db = comm_db + "kakao_apikey";
+let kakao_email_db = comm_db + "kakao_email";
+let kakao_passwd_db = comm_db + "kakao_passwd";
 let admin_db = db_root + "comm/admin";
 let ban_sender_db = db_root + "comm/ban_sender";
 let room_db = db_root + "room/";
 
 let admin = getAdminUser();
 let ban_sender = getBanUser();
-let apikey = getApiKey();
+const apikey = getApiKey();
 let apikey_qry = "&auth=" + apikey;
+const kakaoApiKey = getKakaoApiKey();
+const kakaoEmail = getKakaoEmail();
+const kakaoPasswd = getKakaoPasswd();
 
 let Lw = "\u200b".repeat(500);
 
@@ -78,6 +84,33 @@ function getApiKey() {
   return k;
 }
 
+function getKakaoApiKey() {
+  const k = DataBase.getDataBase(kakao_apikey_db);
+  if (k == null) {
+    Log.e("Kakao API Key is Null. Check API Key DB!!", true);
+    return "";
+  }
+  return k.replace(/[\n\t\r]/g, "");
+}
+
+function getKakaoEmail() {
+  const k = DataBase.getDataBase(kakao_email_db);
+  if (k == null) {
+    Log.e("Kakao Email is Null. Check Email DB!!", true);
+    return "";
+  }
+  return k.replace(/[\n\t\r]/g, "");
+}
+
+function getKakaoPasswd() {
+  const k = DataBase.getDataBase(kakao_passwd_db);
+  if (k == null) {
+    Log.e("Kakao Passwd is Null. Check Passwd DB!!", true);
+    return "";
+  }
+  return k.replace(/[\n\t\r]/g, "");
+}
+
 const onStartCompile = () => {
   admin = getAdminUser();
   ban_sender = getBanUser();
@@ -85,7 +118,13 @@ const onStartCompile = () => {
 };
 
 /* https://cafe.naver.com/nameyee/32361 */
-const Postposition = [ ["를", "을"],  ["가", "이가"],  ["는", "은"],  ["와", "과"],  ["로", "으로"] ];
+const Postposition = [
+  ["를", "을"],
+  ["가", "이가"],
+  ["는", "은"],
+  ["와", "과"],
+  ["로", "으로"],
+];
 String.prototype.postposition = function () {
   let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
     if (/[ㄱ-힣]/.test(point)) {
@@ -101,9 +140,6 @@ String.prototype.postposition = function () {
   return content;
 };
 
-let fun_db = db_root + "fun/";
-let learn_db = db_root + "learn/";
-let learn_db_list = db_root + "learn_list/words";
 let daumstockUrl =
   "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=";
 let data;
@@ -127,42 +163,78 @@ function responseFix(
   if (run == "t") {
     try {
       if (msg.startsWith("ㅈ")) {
-        jsoup_resp = org.jsoup.Jsoup.connect(daumstockUrl + msg.slice(1) + "+주가").get();
+        jsoup_resp = org.jsoup.Jsoup.connect(
+          daumstockUrl + msg.slice(1) + "+주가"
+        ).get();
 
         if (!jsoup_resp.select(".num_stock").isEmpty()) {
-          resp +=
-            jsoup_resp.select(".icon_stock").text() == "상승" ? "📈 " : "📉 ";
+          date = new Date();
+          thu = jsoup_resp.select(".img_stock > .thumb > .thumb_img").first().attr("src") + "?" + date.getSeconds().toString();
+          lnk = jsoup_resp.select(".img_stock > .thumb").first().attr("href");
+          hdr = jsoup_resp.select(".icon_stock").text() == "상승" ? "📈 " : "📉 " + jsoup_resp.select(".tit_company").text();
+          price = jsoup_resp.select(".num_stock").first().text() +
+            (jsoup_resp.select(".txt_currency").isEmpty()
+              ? "원"
+              : jsoup_resp.select(".txt_currency").text());
+          ctx = (jsoup_resp.select(".num_rate").first().text().substr(0, 2) ==
+            "상승"
+            ? "▲"
+            : jsoup_resp.select(".num_rate").first().text().substr(0, 2) ==
+              "하락"
+              ? "▼"
+              : "-") + jsoup_resp.select(".num_rate").first().text().slice(2);
           
-            resp += jsoup_resp.select(".tit_company").text() + "\n";
-          
-          resp +=
-            jsoup_resp.select(".num_stock").first().text() +
-            (jsoup_resp.select(".txt_currency").isEmpty() ? "원" : jsoup_resp.select(".txt_currency").text()) + " | ";
-
-          resp +=
-            (jsoup_resp.select(".num_rate").first().text().substr(0, 2) == "상승" ? "▲"
-              : jsoup_resp.select(".num_rate").first().text().substr(0, 2) == "하락" ? "▼" : "-") + jsoup_resp.select(".num_rate").first().text().slice(2);
-          
-          updown_item = jsoup_resp.select(".wrap_stock").not(".hide").select(".updown_item");
+          updown_item = jsoup_resp
+            .select(".wrap_stock")
+            .not(".hide")
+            .select(".updown_item");
 
           dt = updown_item.select("dt").eachText();
           dd = updown_item.select("dd").eachText();
 
+          resp += hdr + "\n";
+          resp += "💵" + price + " | ";
+          resp += ctx;
           resp += Lw + "\n\n";
           for (let i = 0; i < dt.length && i < dd.length; i++) {
             resp += dt[i] + " | ";
             resp += dd[i] + "\n";
           }
+
+          Kakao.sendLink(
+            room,
+            {
+              template_id: 81621,
+              template_args: {
+                "THU": thu,
+                "LNK": lnk,
+                "HDR": hdr,
+                "PRICE": price,
+                "CTX": ctx,
+                "SP": dd[0],
+                "HP": dd[1],
+                "LP": dd[2],
+                "VOL": dd[4],
+              },
+            },
+            "custom"
+          )
+            .then((e) => {
+            })
+            .catch((e) => {
+              replier.reply(resp);
+            });
         }
       }
     } catch (error) {
       resp += "에러 발생.\n err : " + error;
     }
   }
-
+  /*
   if (resp != "") {
     replier.reply(resp);
   }
+  */
 }
 
 //아래 4개의 메소드는 액티비티 화면을 수정할때 사용됩니다.
@@ -173,10 +245,10 @@ function onCreate(savedInstanceState, activity) {
   activity.setContentView(textView);
 }
 
-function onStart(activity) {}
-function onResume(activity) {}
-function onPause(activity) {}
-function onStop(activity) {}
+function onStart(activity) { }
+function onResume(activity) { }
+function onPause(activity) { }
+function onStop(activity) { }
 
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
@@ -229,3 +301,23 @@ function onNotificationPosted(sbn, sm) {
     }
   }
 }
+
+const { KakaoApiService, KakaoLinkClient } = require("kakaolink");
+
+const Kakao = new KakaoLinkClient();
+
+KakaoApiService.createService()
+  .login({
+    email: kakaoEmail,
+    password: kakaoPasswd,
+    keepLogin: true,
+  })
+  .then((e) => {
+    Kakao.login(e, {
+      apiKey: kakaoApiKey,
+      url: "https://mumeog.site",
+    });
+  })
+  .catch((e) => {
+    Log.e(e);
+  });
