@@ -9,90 +9,19 @@ const scriptName = "weather";
  * (string) packageName
  */
 
-let db_root = "newyo/db/";
-let comm_db = db_root + "comm/";
-let apikey_db = comm_db + "apikey";
-let admin_db = db_root + "comm/admin";
-let ban_sender_db = db_root + "comm/ban_sender";
-let room_db = db_root + "room/";
+let comm_db = Bridge.getScopeOf("comm").comm_db;
+let apikey_db = Bridge.getScopeOf("comm").apikey;
+let room_db = Bridge.getScopeOf("comm").room_db;
 
-let admin = getAdminUser();
-let ban_sender = getBanUser();
-let apikey = getApiKey();
-let apikey_qry = "&auth=" + apikey;
-
-let Lw = '\u200b'.repeat(500);
-
-function isAdmin(sender) {
-  admin = getAdminUser();
-  
-  if (admin.indexOf(sender.trim()) > -1) {
-    return true;
-  }
-  return false;
-}
-
-function isBanned(sender) {
-  ban_sender = getBanUser();
-
-  if (ban_sender.indexOf(sender) > -1) {
-    return true;
-  }
-  return false;
-}
-
-function getAdminUser () {
-  const a = DataBase.getDataBase(admin_db);
-  if (a == null) {
-    DataBase.setDataBase(admin_db, "master\n");
-    admin = DataBase.getDataBase(admin_db).split("\n").pop();
-  } else {
-    admin = a.split("\n");
-    admin.pop();
-  }
-  return admin;
-}
-
-function getBanUser () {
-  const b = DataBase.getDataBase(ban_sender_db);
-  if (b == null) {
-    DataBase.setDataBase(ban_sender_db, "김지훈\n");
-    ban_sender = DataBase.getDataBase(ban_sender_db).split("\n").pop();
-  } else {
-    ban_sender = b.split("\n");
-    ban_sender.pop();
-  }
-
-  return ban_sender;
-}
-
-function getApiKey() {
-  const k = DataBase.getDataBase(apikey_db);
-  if (k == null) {
-    Log.e("API Key is Null. Check API Key DB!!", true);
-    return "";
-  } else {
-    apikey_qry = "&auth=" + k;
-  }
-  
-  return k;
-}
+let apikey = Bridge.getScopeOf("comm").apikey
+let apikey_qry = Bridge.getScopeOf("comm").apikey_qry
+let Lw = Bridge.getScopeOf("comm").Lw
 
 const onStartCompile = () => {
-  a = DataBase.getDataBase(admin_db);
-  if (a == null) {
-    DataBase.setDataBase(admin_db, "masterYW\n");
+  if (!Bridge.isAllowed("comm")) {
+    Api.compile("comm");
   }
-  admin = a.split("\n");
-
-  b = DataBase.getDataBase(ban_sender_db);
-  if (b == null) {
-    DataBase.setDataBase(ban_sender_db, "김지훈\n");
-  } else {
-    ban_sender = b.split("\n");
-  }
-
-  apikey = getApiKey();
+  apikey = Bridge.getScopeOf("comm").getApiKey();
 };
 
 /* https://cafe.naver.com/nameyee/32361 */
@@ -111,46 +40,6 @@ String.prototype.postposition = function() {
     })
     return content;
 };
-
-let kimchi_count = 0;
-
-/*
--- 서버단에서 파싱하는 것으로 변경
-input : json_object, day(0:오늘, 1:내일)
-return : string | 파싱된 문자열
-*/
-function parseWeather(data, day) {
-  let parsed_data = "";
-  // 0: 1시간 기온, 5: 하늘 상태, 6: 강수 형태, 7: 강수 확률, 9: 강수량, 10: 습도, 11: 1시간 신적설
-  parsed_data +=
-    data.contents[day][0].fcstDate.substr(0, 4) +
-    "년 " +
-    data.contents[day][0].fcstDate.substr(4, 2) +
-    "월 " +
-    data.contents[day][0].fcstDate.substr(6, 2) +
-    "일 " +
-    "\n";
-  parsed_data += data.contents[day][0].fcstTime + "\n";
-  parsed_data += data.contents[day][0].category + " : ";
-  parsed_data += data.contents[day][0].fcstValue + "\n";
-  parsed_data += data.contents[day][5].category + "   : ";
-  parsed_data += data.contents[day][5].fcstValue + "\n";
-  parsed_data += data.contents[day][6].category + "   : ";
-  parsed_data += data.contents[day][6].fcstValue + "\n";
-  parsed_data += data.contents[day][7].category + "   : ";
-  parsed_data += data.contents[day][7].fcstValue + "\n";
-  parsed_data += data.contents[day][9].category + "       : ";
-  parsed_data += data.contents[day][9].fcstValue + "\n";
-  parsed_data += data.contents[day][10].category + "          : ";
-  parsed_data += data.contents[day][10].fcstValue;
-  if (data.contents[day][11].fcstValue != "적설없음") {
-    parsed_data += "\n";
-    parsed_data += data.contents[day][11].category + ": ";
-    parsed_data += data.contents[day][11].fcstValue;
-  }
-
-  return parsed_data;
-}
 
 /*
 input : array | split된 키워드 문자열 배열

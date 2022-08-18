@@ -1,4 +1,4 @@
-const scriptName = "fun";
+const scriptName = "stock";
 /**
  * (string) room
  * (string) sender
@@ -9,139 +9,41 @@ const scriptName = "fun";
  * (string) packageName
  */
 
-let db_root = "newyo/db/";
-let comm_db = db_root + "comm/";
-let apikey_db = comm_db + "apikey";
-let kakao_apikey_db = comm_db + "kakao_apikey";
-let kakao_email_db = comm_db + "kakao_email";
-let kakao_passwd_db = comm_db + "kakao_passwd";
-let admin_db = db_root + "comm/admin";
-let ban_sender_db = db_root + "comm/ban_sender";
-let room_db = db_root + "room/";
+let comm_db = Bridge.getScopeOf("comm").comm_db;
+let apikey_db = Bridge.getScopeOf("comm").apikey;
+let room_db = Bridge.getScopeOf("comm").room_db;
 
-let admin = getAdminUser();
-let ban_sender = getBanUser();
-const apikey = getApiKey();
-let apikey_qry = "&auth=" + apikey;
-const kakaoApiKey = getKakaoApiKey();
-const kakaoEmail = getKakaoEmail();
-const kakaoPasswd = getKakaoPasswd();
-
-let Lw = "\u200b".repeat(500);
-
-function isAdmin(sender) {
-  admin = getAdminUser();
-
-  if (admin.indexOf(sender.trim()) > -1) {
-    return true;
-  }
-  return false;
-}
-
-function isBanned(sender) {
-  ban_sender = getBanUser();
-
-  if (ban_sender.indexOf(sender) > -1) {
-    return true;
-  }
-  return false;
-}
-
-function getAdminUser() {
-  const a = DataBase.getDataBase(admin_db);
-  if (a == null) {
-    DataBase.setDataBase(admin_db, "master\n");
-    admin = DataBase.getDataBase(admin_db).split("\n").pop();
-  } else {
-    admin = a.split("\n");
-    admin.pop();
-  }
-  return admin;
-}
-
-function getBanUser() {
-  const b = DataBase.getDataBase(ban_sender_db);
-  if (b == null) {
-    DataBase.setDataBase(ban_sender_db, "김지훈\n");
-    ban_sender = DataBase.getDataBase(ban_sender_db).split("\n").pop();
-  } else {
-    ban_sender = b.split("\n");
-    ban_sender.pop();
-  }
-
-  return ban_sender;
-}
-
-function getApiKey() {
-  const k = DataBase.getDataBase(apikey_db);
-  if (k == null) {
-    Log.e("API Key is Null. Check API Key DB!!", true);
-    return "";
-  } else {
-    apikey_qry = "&auth=" + k;
-  }
-
-  return k;
-}
-
-function getKakaoApiKey() {
-  const k = DataBase.getDataBase(kakao_apikey_db);
-  if (k == null) {
-    Log.e("Kakao API Key is Null. Check API Key DB!!", true);
-    return "";
-  }
-  return k.replace(/[\n\t\r]/g, "");
-}
-
-function getKakaoEmail() {
-  const k = DataBase.getDataBase(kakao_email_db);
-  if (k == null) {
-    Log.e("Kakao Email is Null. Check Email DB!!", true);
-    return "";
-  }
-  return k.replace(/[\n\t\r]/g, "");
-}
-
-function getKakaoPasswd() {
-  const k = DataBase.getDataBase(kakao_passwd_db);
-  if (k == null) {
-    Log.e("Kakao Passwd is Null. Check Passwd DB!!", true);
-    return "";
-  }
-  return k.replace(/[\n\t\r]/g, "");
-}
+let apikey = Bridge.getScopeOf("comm").apikey
+let apikey_qry = Bridge.getScopeOf("comm").apikey_qry
+let Lw = Bridge.getScopeOf("comm").Lw
 
 const onStartCompile = () => {
-  admin = getAdminUser();
-  ban_sender = getBanUser();
-  apikey = getApiKey();
+  if (!Bridge.isAllowed("comm")) {
+    Api.compile("comm");
+  }
+  admin = Bridge.getScopeOf("comm").getAdminUser();
+  ban_sender = Bridge.getScopeOf("comm").getBanUser();
+  apikey = Bridge.getScopeOf("comm").getApiKey();
 };
 
 /* https://cafe.naver.com/nameyee/32361 */
-const Postposition = [
-  ["를", "을"],
-  ["가", "이가"],
-  ["는", "은"],
-  ["와", "과"],
-  ["로", "으로"],
-];
-String.prototype.postposition = function () {
-  let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
-    if (/[ㄱ-힣]/.test(point)) {
-      const pointLen = point.normalize("NFD").split("").length;
-      const find = Postposition.find((b) => b[0] == position);
-      if (find) {
-        return point + find[pointLen - 2];
-      } else return point + position;
-    } else {
-      return str;
-    }
-  });
-  return content;
+const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function() {
+    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
+        if( /[ㄱ-힣]/.test(point) ) {
+            const pointLen = point.normalize('NFD').split('').length;
+            const find = Postposition.find( b => b[0] == position );
+            if( find ) {
+                return point + find[pointLen-2];
+            } else return point + position;
+        } else {
+            return str;
+        }
+    })
+    return content;
 };
 
-let daumstockUrl =
-  "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=";
+let daumstockUrl = "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=";
 let data;
 
 function responseFix(
@@ -200,8 +102,8 @@ function responseFix(
             resp += dt[i] + " | ";
             resp += dd[i] + "\n";
           }
-
-          Kakao.sendLink(
+          
+          Bridge.getScopeOf("comm").Kakao.sendLink(
             room,
             {
               template_id: 81621,
@@ -302,22 +204,3 @@ function onNotificationPosted(sbn, sm) {
   }
 }
 
-const { KakaoApiService, KakaoLinkClient } = require("kakaolink");
-
-const Kakao = new KakaoLinkClient();
-
-KakaoApiService.createService()
-  .login({
-    email: kakaoEmail,
-    password: kakaoPasswd,
-    keepLogin: true,
-  })
-  .then((e) => {
-    Kakao.login(e, {
-      apiKey: kakaoApiKey,
-      url: "https://mumeog.site",
-    });
-  })
-  .catch((e) => {
-    Log.e(e);
-  });

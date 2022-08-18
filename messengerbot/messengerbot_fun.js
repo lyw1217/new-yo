@@ -9,101 +9,21 @@ const scriptName = "fun";
  * (string) packageName
  */
 
-let db_root = "newyo/db/";
-let comm_db = db_root + "comm/";
-let apikey_db = comm_db + "apikey";
-let admin_db = db_root + "comm/admin";
-let ban_sender_db = db_root + "comm/ban_sender";
-let room_db = db_root + "room/";
+let comm_db = Bridge.getScopeOf("comm").comm_db;
+let apikey_db = Bridge.getScopeOf("comm").apikey;
+let admin_db = Bridge.getScopeOf("comm").admin_db;
+let ban_sender_db = Bridge.getScopeOf("comm").ban_sender_db;
+let room_db = Bridge.getScopeOf("comm").room_db;
 
-let admin = getAdminUser();
-let ban_sender = getBanUser();
-let apikey = getApiKey();
-let apikey_qry = "&auth=" + apikey;
+let admin = Bridge.getScopeOf("comm").admin
+let ban_sender = Bridge.getScopeOf("comm").ban_sender
+let apikey = Bridge.getScopeOf("comm").apikey
+let apikey_qry = Bridge.getScopeOf("comm").apikey_qry
+let Lw = Bridge.getScopeOf("comm").Lw
 
-let Lw = '\u200b'.repeat(500);
-
-function isAdmin(sender) {
-  admin = getAdminUser();
-
-  if (admin.indexOf(sender.trim()) > -1) {
-    return true;
-  }
-  return false;
-}
-
-function isBanned(sender) {
-  ban_sender = getBanUser();
-  
-  if (ban_sender.indexOf(sender) > -1) {
-    return true;
-  }
-  return false;
-}
-
-function getAdminUser () {
-  const a = DataBase.getDataBase(admin_db);
-  if (a == null) {
-    DataBase.setDataBase(admin_db, "master\n");
-    admin = DataBase.getDataBase(admin_db).split("\n").pop();
-  } else {
-    admin = a.split("\n");
-    admin.pop();
-  }
-  return admin;
-}
-
-function getBanUser () {
-  const b = DataBase.getDataBase(ban_sender_db);
-  if (b == null) {
-    DataBase.setDataBase(ban_sender_db, "김지훈\n");
-    ban_sender = DataBase.getDataBase(ban_sender_db).split("\n").pop();
-  } else {
-    ban_sender = b.split("\n");
-    ban_sender.pop();
-  }
-
-  return ban_sender;
-}
-
-function getApiKey() {
-  const k = DataBase.getDataBase(apikey_db);
-  if (k == null) {
-    Log.e("API Key is Null. Check API Key DB!!", true);
-    return "";
-  } else {
-    apikey_qry = "&auth=" + k;
-  }
-  
-  return k;
-}
-
-const onStartCompile = () => {
-  admin = getAdminUser();
-  ban_sender = getBanUser();
-  apikey = getApiKey();
-};
-
-/* https://cafe.naver.com/nameyee/32361 */
-const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
-String.prototype.postposition = function() {
-    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
-        if( /[ㄱ-힣]/.test(point) ) {
-            const pointLen = point.normalize('NFD').split('').length;
-            const find = Postposition.find( b => b[0] == position );
-            if( find ) {
-                return point + find[pointLen-2];
-            } else return point + position;
-        } else {
-            return str;
-        }
-    })
-    return content;
-};
-
-let fun_db = db_root + "fun/";
-let learn_db = db_root + "learn/";
-let learn_db_list = db_root + "learn_list/words";
+let fun_db = Bridge.getScopeOf("comm").fun_db;
+let learn_db = Bridge.getScopeOf("comm").learn_db;
+let learn_db_list = Bridge.getScopeOf("comm").learn_db_list;
 let drwNo = 0;
 let lottoUrl =
   "http://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=";
@@ -343,7 +263,7 @@ function responseFix(
               resp += input_del_words + " 단어는 학습하지 않았어요.";
             }
           }
-        } else if (msg.startsWith("ㅇ학습리스트") && isAdmin(sender)) {
+        } else if (msg.startsWith("ㅇ학습리스트") && Bridge.getScopeOf("comm").isAdmin(sender)) {
           if (msg.includes("제거")) {
             const del_count = parseInt(
               msg.substring("ㅇ학습리스트 제거 ".length).trim()
@@ -367,34 +287,6 @@ function responseFix(
               }
             } else {
               resp += "학습한 내용이 없어요.";
-            }
-          }
-        } else if (msg.startsWith("ㅇ루트") && isAdmin(sender)) {
-          if (msg.includes("밴")) {
-            if (msg.includes("추가")) {
-              const input_add_user = msg.split(" ");
-              DataBase.appendDataBase(
-                ban_sender_db,
-                input_add_user[input_add_user.length - 1] + "\n"
-              );
-              b = DataBase.getDataBase(ban_sender_db);
-              ban_sender = b.split("\n");
-              resp += "[밴 유저 목록]\n";
-              resp += b;
-            } else if (msg.includes("삭제")) {
-              const input_del_user = msg.split(" ");
-              b = DataBase.getDataBase(ban_sender_db);
-              ban_sender = b.split("\n");
-              for (var i = 0; i < ban_sender.length; i++) {
-                if (ban_sender[i] == input_del_user[3]) {
-                  ban_sender.splice(i, 1);
-                  break;
-                }
-              }
-              DataBase.setDataBase(ban_sender_db, ban_sender.join("\n"));
-              b = DataBase.getDataBase(ban_sender_db);
-              resp += "[밴 유저 목록]\n";
-              resp += b;
             }
           }
         } else if (msg.startsWith("ㅇ로마")) {
@@ -445,16 +337,14 @@ function responseFix(
               ctx = data.place + "$로부터 거리는 약 " + data.d + "m 에요.";
               try {
                 jsoup_resp = org.jsoup.Jsoup.connect(data.lnk + "?service=search_pc").get();
-                Log.d(jsoup_resp);
                 thu = jsoup_resp.select("meta[property=og:image]").first().attr("content").toString();
-                Log.d(thu);  
               } catch (error) {
                 thu = "";
                 Log.d(error);
               }
               
-              if (Bridge.isAllowed("stock")) {
-                Bridge.getScopeOf("stock").Kakao.sendLink(
+              if (Bridge.isAllowed("comm")) {
+                Bridge.getScopeOf("comm").Kakao.sendLink(
                   room,
                   {
                     template_id: 81646,
@@ -540,6 +430,34 @@ function onStart(activity) {}
 function onResume(activity) {}
 function onPause(activity) {}
 function onStop(activity) {}
+const onStartCompile = () => {
+  if (!Bridge.isAllowed("comm")) {
+    Api.compile("comm");
+  }
+};
+
+/* https://cafe.naver.com/nameyee/32361 */
+const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function() {
+    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
+        if( /[ㄱ-힣]/.test(point) ) {
+            const pointLen = point.normalize('NFD').split('').length;
+            const find = Postposition.find( b => b[0] == position );
+            if( find ) {
+                if ( pointLen < 2 ) {
+                  return point + position ;  
+                }
+                return point + find[pointLen-2];
+            } else {
+              return point + position;
+            }
+        } else {
+            return str;
+        }
+    })
+
+    return content;
+};
 
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
