@@ -14,7 +14,8 @@ let comm_db = db_root + "comm/";
 let apikey_db = comm_db + "apikey";
 let admin_db = db_root + "comm/admin";
 let ban_sender_db = db_root + "comm/ban_sender";
-let room_db = db_root + "room/";
+let room_ctx_db = db_root + "room/%s/ctx";
+let room_run_db = db_root + "room/%s/run";
 
 /* newyo */
 let subslist_db = db_root + "subslist";
@@ -291,16 +292,18 @@ function responseFix(
 ) {
   let data;
   let resp = "";
-  let run = DataBase.getDataBase(comm_db + "run");
+
+  let run = DataBase.getDataBase(parse(room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(comm_db + "run", "t");
+    DataBase.setDataBase(parse(room_run_db, room), "t");
   }
 
-  if (DataBase.getDataBase(room_db + room) == null) {
-    DataBase.setDataBase(room_db + room, getDataTimeStr() + room + "\n");
+  if (DataBase.getDataBase(parse(room_ctx_db, room)) == null) {
+    DataBase.setDataBase(parse(room_ctx_db, room), getDataTimeStr() + room + "\n");
   }
+
   DataBase.appendDataBase(
-    room_db + room,
+    parse(room_ctx_db, room),
     getDataTimeStr() + sender + " : " + msg + "\n"
   );
 
@@ -315,7 +318,7 @@ function responseFix(
         kimchi_count = 0;
       }
       resp += "그만쓰";
-      DataBase.setDataBase(comm_db + "run", "f");
+      DataBase.setDataBase(parse(room_run_db, room), "f");
     }
   } else if (msg.startsWith("ㅇ시작") || msg.startsWith("ㅇstart")) {
     if (isBanned(sender) && kimchi_count < 2) {
@@ -328,7 +331,7 @@ function responseFix(
         kimchi_count = 0;
       }
       resp += "시작쓰";
-      DataBase.setDataBase(comm_db + "run", "t");
+      DataBase.setDataBase(parse(room_run_db, room), "t");
     }
   }
 
@@ -481,3 +484,10 @@ KakaoApiService.createService()
   .catch((e) => {
     Log.e(e);
   });
+
+
+function parse(str) {
+  var args = [].slice.call(arguments, 1), i = 0;
+
+  return str.replace(/%s/g, () => args[i++]);
+}

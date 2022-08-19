@@ -13,7 +13,8 @@ let comm_db = Bridge.getScopeOf("comm").comm_db;
 let apikey_db = Bridge.getScopeOf("comm").apikey;
 let admin_db = Bridge.getScopeOf("comm").admin_db;
 let ban_sender_db = Bridge.getScopeOf("comm").ban_sender_db;
-let room_db = Bridge.getScopeOf("comm").room_db;
+let room_ctx_db = Bridge.getScopeOf("comm").room_ctx_db;
+let room_run_db = Bridge.getScopeOf("comm").room_run_db;
 let subslist_db = Bridge.getScopeOf("comm").subslist_db;
 
 const subs_hour = 14;
@@ -96,9 +97,9 @@ function responseFix(
 ) {
   let data;
   let resp = "";
-  let run = DataBase.getDataBase(comm_db + "run");
+  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(comm_db + "run", "t");
+    DataBase.setDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room), "t");
   }
 
   if (run == "t") {

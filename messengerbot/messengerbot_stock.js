@@ -11,7 +11,8 @@ const scriptName = "stock";
 
 let comm_db = Bridge.getScopeOf("comm").comm_db;
 let apikey_db = Bridge.getScopeOf("comm").apikey;
-let room_db = Bridge.getScopeOf("comm").room_db;
+let room_ctx_db = Bridge.getScopeOf("comm").room_ctx_db;
+let room_run_db = Bridge.getScopeOf("comm").room_run_db;
 
 let apikey = Bridge.getScopeOf("comm").apikey
 let apikey_qry = Bridge.getScopeOf("comm").apikey_qry
@@ -58,9 +59,9 @@ function responseFix(
 ) {
   let resp = "";
 
-  let run = DataBase.getDataBase(comm_db + "run");
+  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(comm_db + "run", "t");
+    DataBase.setDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room), "t");
   }
 
   if (run == "t") {

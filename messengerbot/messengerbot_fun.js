@@ -13,7 +13,8 @@ let comm_db = Bridge.getScopeOf("comm").comm_db;
 let apikey_db = Bridge.getScopeOf("comm").apikey;
 let admin_db = Bridge.getScopeOf("comm").admin_db;
 let ban_sender_db = Bridge.getScopeOf("comm").ban_sender_db;
-let room_db = Bridge.getScopeOf("comm").room_db;
+let room_ctx_db = Bridge.getScopeOf("comm").room_ctx_db;
+let room_run_db = Bridge.getScopeOf("comm").room_run_db;
 
 let admin = Bridge.getScopeOf("comm").admin
 let ban_sender = Bridge.getScopeOf("comm").ban_sender
@@ -125,9 +126,9 @@ function responseFix(
 ) {
   let resp = "";
 
-  let run = DataBase.getDataBase(comm_db + "run");
+  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(comm_db + "run", "t");
+    DataBase.setDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room), "t");
   }
 
   if (run == "t") {
@@ -378,33 +379,37 @@ function responseFix(
           }
         }
 
-        else if (msg.startsWith('ㅇ운세 ')) {
-          try {
-            jsoup_resp = org.jsoup.Jsoup.connect('http://search.naver.com/search.naver?query=' + msg.slice(4) + '+운세').get();
-
-            if ( jsoup_resp.select('.api_title').first().text() == "운세" ) {
-              resp += "[ 오늘의 " + msg.slice(4) + " 운세 ]\n";
-              resp += jsoup_resp.select('._cs_fortune_text').first().text();
-              
-              if ( !jsoup_resp.select('.lst_infor').isEmpty() ) {
-                lst_info = jsoup_resp.select('.lst_infor').first() ;
-                dt = lst_info.select('dt').eachText();
-                dd = lst_info.select('dd').eachText();
-
-                resp += "\n" + Lw + "\n";
-                for ( let i = 0; i < dt.length && i < dd.length; i++ ) {
-                    resp += dt[i] + " | " ;
-                    resp += dd[i] + "\n" ;
-                }
-              }            
-            } else {
+        else if (msg.startsWith('ㅇ운세')) {
+          if (msg == "ㅇ운세") {
+            resp += "'ㅇ운세 (띠/별자리)' 로 오늘의 운세를 확인해보세요.";
+          } else if (msg.startsWith('ㅇ운세 ')){
+            try {
+              jsoup_resp = org.jsoup.Jsoup.connect('http://search.naver.com/search.naver?query=' + msg.slice(4) + '+운세').get();
+  
+              if ( jsoup_resp.select('.api_title').first().text() == "운세" ) {
+                resp += "[ 오늘의 " + msg.slice(4) + " 운세 ]\n";
+                resp += jsoup_resp.select('._cs_fortune_text').first().text();
+                
+                if ( !jsoup_resp.select('.lst_infor').isEmpty() ) {
+                  lst_info = jsoup_resp.select('.lst_infor').first() ;
+                  dt = lst_info.select('dt').eachText();
+                  dd = lst_info.select('dd').eachText();
+  
+                  resp += "\n" + Lw + "\n";
+                  for ( let i = 0; i < dt.length && i < dd.length; i++ ) {
+                      resp += dt[i] + " | " ;
+                      resp += dd[i] + "\n" ;
+                  }
+                }            
+              } else {
+                resp = "";
+                resp += "운세 정보를 가져오지 못했어요.";
+              }
+            } catch (error) {
+              Log.e(error, true);
               resp = "";
               resp += "운세 정보를 가져오지 못했어요.";
             }
-          } catch (error) {
-            Log.e(error, true);
-            resp = "";
-            resp += "운세 정보를 가져오지 못했어요.";
           }
         }
       } catch (error) {
