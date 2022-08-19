@@ -75,7 +75,7 @@ function responseFix(
           date = new Date();
           thu = jsoup_resp.select(".img_stock > .thumb > .thumb_img").first().attr("src") + "?" + date.getMinutes().toString() + date.getSeconds().toString();
           lnk = jsoup_resp.select(".img_stock > .thumb").first().attr("href");
-          hdr = jsoup_resp.select(".icon_stock").text() == "상승" ? "📈 " : "📉 " + jsoup_resp.select(".tit_company").text();
+          hdr = (jsoup_resp.select(".icon_stock").text() == "상승" ? "📈 " : "📉 ") + jsoup_resp.select(".tit_company").text();
           price = jsoup_resp.select(".num_stock").first().text() +
             (jsoup_resp.select(".txt_currency").isEmpty()
               ? "원"
@@ -141,7 +141,7 @@ function responseFix(
               exchange = jsoup_resp.select(".inner_price > .txt_num").first().text();
               dl = jsoup_resp.select(".inner_price > .dl_comm").first();
               dd = dl.select('dd').eachText();
-              comp = dd[0].includes("상승") ? "▲" : "▼" + dd[0].slice(2).trim();
+              comp = (dd[0].includes("상승") ? "▲" : "▼") + dd[0].slice(2).trim();
               per = dd[1].trim();
 
               table = jsoup_resp.select(".inner_info_price > table").first();
@@ -222,7 +222,7 @@ function responseFix(
               exchange = jsoup_resp.select(".inner_price > .txt_num").first().text();
               dl = jsoup_resp.select(".inner_price > .dl_comm").first();
               dd = dl.select('dd').eachText();
-              comp = dd[0].includes("상승") ? "▲" : "▼" + dd[0].slice(2).trim();
+              comp = (dd[0].includes("상승") ? "▲" : "▼") + dd[0].slice(2).trim();
               per = dd[1].trim();
               table = jsoup_resp.select(".inner_info_price > table").first();
               td = table.select('td').eachText();
