@@ -26,20 +26,20 @@ const onStartCompile = () => {
 };
 
 /* https://cafe.naver.com/nameyee/32361 */
-const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
-String.prototype.postposition = function() {
-    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
-        if( /[ㄱ-힣]/.test(point) ) {
-            const pointLen = point.normalize('NFD').split('').length;
-            const find = Postposition.find( b => b[0] == position );
-            if( find ) {
-                return point + find[pointLen-2];
-            } else return point + position;
-        } else {
-            return str;
-        }
-    })
-    return content;
+const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function () {
+  let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
+    if (/[ㄱ-힣]/.test(point)) {
+      const pointLen = point.normalize('NFD').split('').length;
+      const find = Postposition.find(b => b[0] == position);
+      if (find) {
+        return point + find[pointLen - 2];
+      } else return point + position;
+    } else {
+      return str;
+    }
+  })
+  return content;
 };
 
 /*
@@ -131,7 +131,7 @@ function responseFix(
               url + weather_qry + "mid=" + input_fcst_keywords[1] + apikey_qry
             ).text();
             split_data = data.split("@");
-            split_data.splice(1,0,Lw);
+            split_data.splice(1, 0, Lw);
             resp += split_data.join("\n");
           } catch (error) {
             resp += "'ㅇ예보' 를 입력해서 지역을 확인해보세요.";
@@ -157,10 +157,10 @@ function onCreate(savedInstanceState, activity) {
   activity.setContentView(textView);
 }
 
-function onStart(activity) {}
-function onResume(activity) {}
-function onPause(activity) {}
-function onStop(activity) {}
+function onStart(activity) { }
+function onResume(activity) { }
+function onPause(activity) { }
+function onStop(activity) { }
 
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
@@ -169,24 +169,24 @@ function onNotificationPosted(sbn, sm) {
   if (actions == null) return;
   var userId = sbn.getUser().hashCode();
   for (var n = 0; n < actions.length; n++) {
-      var action = actions[n];
-      if (action.getRemoteInputs() == null) continue;
-      var bundle = sbn.getNotification().extras;
+    var action = actions[n];
+    if (action.getRemoteInputs() == null) continue;
+    var bundle = sbn.getNotification().extras;
 
-      var msg = bundle.get("android.text").toString();
-      var sender = bundle.getString("android.title");
-      var room = bundle.getString("android.subText");
-      if (room == null) room = bundle.getString("android.summaryText");
-      var isGroupChat = room != null;
-      if (room == null) room = sender;
-      var replier = new com.xfl.msgbot.script.api.legacy.SessionCacheReplier(packageName, action, room, false, "");
-      var icon = bundle.getParcelableArray("android.messages")[0].get("sender_person").getIcon().getBitmap();
-      var image = bundle.getBundle("android.wearable.EXTENSIONS");
-      if (image != null) image = image.getParcelable("background");
-      var imageDB = new com.xfl.msgbot.script.api.legacy.ImageDB(icon, image);
-      com.xfl.msgbot.application.service.NotificationListener.Companion.setSession(packageName, room, action);
-      if (this.hasOwnProperty("responseFix")) {
-          responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, userId != 0);
-      }
+    var msg = bundle.get("android.text").toString();
+    var sender = bundle.getString("android.title");
+    var room = bundle.getString("android.subText");
+    if (room == null) room = bundle.getString("android.summaryText");
+    var isGroupChat = room != null;
+    if (room == null) room = sender;
+    var replier = new com.xfl.msgbot.script.api.legacy.SessionCacheReplier(packageName, action, room, false, "");
+    var icon = bundle.getParcelableArray("android.messages")[0].get("sender_person").getIcon().getBitmap();
+    var image = bundle.getBundle("android.wearable.EXTENSIONS");
+    if (image != null) image = image.getParcelable("background");
+    var imageDB = new com.xfl.msgbot.script.api.legacy.ImageDB(icon, image);
+    com.xfl.msgbot.application.service.NotificationListener.Companion.setSession(packageName, room, action);
+    if (this.hasOwnProperty("responseFix")) {
+      responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, userId != 0);
+    }
   }
 }

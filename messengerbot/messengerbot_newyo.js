@@ -70,20 +70,20 @@ const onStartCompile = () => {
 };
 
 /* https://cafe.naver.com/nameyee/32361 */
-const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
-String.prototype.postposition = function() {
-    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
-        if( /[ㄱ-힣]/.test(point) ) {
-            const pointLen = point.normalize('NFD').split('').length;
-            const find = Postposition.find( b => b[0] == position );
-            if( find ) {
-                return point + find[pointLen-2];
-            } else return point + position;
-        } else {
-            return str;
-        }
-    })
-    return content;
+const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function () {
+  let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
+    if (/[ㄱ-힣]/.test(point)) {
+      const pointLen = point.normalize('NFD').split('').length;
+      const find = Postposition.find(b => b[0] == position);
+      if (find) {
+        return point + find[pointLen - 2];
+      } else return point + position;
+    } else {
+      return str;
+    }
+  })
+  return content;
 };
 
 function responseFix(
@@ -122,7 +122,7 @@ function responseFix(
             replier.reply(resp);
             resp = "";
             flag = true;
-          } catch (error) {}
+          } catch (error) { }
 
           try {
             data = Utils.parse(
@@ -139,7 +139,7 @@ function responseFix(
             replier.reply(resp);
             resp = "";
             flag = true;
-          } catch (error) {}
+          } catch (error) { }
 
           try {
             data = Utils.parse(
@@ -149,10 +149,10 @@ function responseFix(
             resp = "";
             resp +=
               "[ " + data.contents[0].paper + " ]\n" + Lw + data.contents[0].content;
-              replier.reply(resp);
-              resp = "";
-              flag = true;
-          } catch (error) {}
+            replier.reply(resp);
+            resp = "";
+            flag = true;
+          } catch (error) { }
 
           if (resp.length == 0 && flag == false) {
             resp += "오늘자 요약 뉴스가 없어요.";
@@ -169,7 +169,7 @@ function responseFix(
             url + article_qry + "hankyung" + apikey_qry
           ).text();
           data = JSON.parse(data);
-          resp += "[한국경제 Issue Today]\n" + Lw ;
+          resp += "[한국경제 Issue Today]\n" + Lw;
           resp += data.contents[0].content;
         } catch (error) {
           resp += "뉴스를 조회하지 못했어요.";
@@ -183,7 +183,7 @@ function responseFix(
             url + article_qry + "maekyung" + apikey_qry
           ).text();
           data = JSON.parse(data);
-          resp += "[매일경제 매.세.지]\n" + Lw ;
+          resp += "[매일경제 매.세.지]\n" + Lw;
           resp += data.contents[0].content;
         } catch (error) {
           resp += "뉴스를 조회하지 못했어요.";
@@ -197,7 +197,7 @@ function responseFix(
             url + article_qry + "quicknews" + apikey_qry
           ).text();
           data = JSON.parse(data);
-          resp += "[간추린아침뉴스]\n" + Lw ;
+          resp += "[간추린아침뉴스]\n" + Lw;
           resp += data.contents[0].content;
         } catch (error) {
           resp += "뉴스를 조회하지 못했어요.";
@@ -285,7 +285,7 @@ const INTER = setInterval(() => {
             " ]\n" +
             data.contents[0].content +
             "\n\n";
-        } catch (error) {}
+        } catch (error) { }
 
         try {
           data = Utils.parse(
@@ -298,7 +298,7 @@ const INTER = setInterval(() => {
             " ]\n" +
             data.contents[0].content +
             "\n\n";
-        } catch (error) {}
+        } catch (error) { }
 
         try {
           data = Utils.parse(
@@ -307,7 +307,7 @@ const INTER = setInterval(() => {
           data = JSON.parse(data);
           resp +=
             "[ " + data.contents[0].paper + " ]\n" + data.contents[0].content;
-        } catch (error) {}
+        } catch (error) { }
 
         if (resp.length > 0) {
           let ssl = DataBase.getDataBase(subslist_db);
@@ -340,10 +340,10 @@ function onCreate(savedInstanceState, activity) {
   activity.setContentView(textView);
 }
 
-function onStart(activity) {}
-function onResume(activity) {}
-function onPause(activity) {}
-function onStop(activity) {}
+function onStart(activity) { }
+function onResume(activity) { }
+function onPause(activity) { }
+function onStop(activity) { }
 
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();

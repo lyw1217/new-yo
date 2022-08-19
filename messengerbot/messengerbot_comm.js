@@ -96,67 +96,67 @@ function getApiKey() {
 
 
 function getKakaoApiKey() {
-    const k = DataBase.getDataBase(kakao_apikey_db);
-    if (k == null) {
-      Log.e("Kakao API Key is Null. Check API Key DB!!", true);
-      return "";
-    }
-    return k.replace(/[\n\t\r]/g, "");
+  const k = DataBase.getDataBase(kakao_apikey_db);
+  if (k == null) {
+    Log.e("Kakao API Key is Null. Check API Key DB!!", true);
+    return "";
   }
-  
-  function getKakaoEmail() {
-    const k = DataBase.getDataBase(kakao_email_db);
-    if (k == null) {
-      Log.e("Kakao Email is Null. Check Email DB!!", true);
-      return "";
-    }
-    return k.replace(/[\n\t\r]/g, "");
+  return k.replace(/[\n\t\r]/g, "");
+}
+
+function getKakaoEmail() {
+  const k = DataBase.getDataBase(kakao_email_db);
+  if (k == null) {
+    Log.e("Kakao Email is Null. Check Email DB!!", true);
+    return "";
   }
-  
-  function getKakaoPasswd() {
-    const k = DataBase.getDataBase(kakao_passwd_db);
-    if (k == null) {
-      Log.e("Kakao Passwd is Null. Check Passwd DB!!", true);
-      return "";
-    }
-    return k.replace(/[\n\t\r]/g, "");
+  return k.replace(/[\n\t\r]/g, "");
+}
+
+function getKakaoPasswd() {
+  const k = DataBase.getDataBase(kakao_passwd_db);
+  if (k == null) {
+    Log.e("Kakao Passwd is Null. Check Passwd DB!!", true);
+    return "";
   }
+  return k.replace(/[\n\t\r]/g, "");
+}
 
 const onStartCompile = () => {
-    a = DataBase.getDataBase(admin_db);
-    if (a == null) {
-      DataBase.setDataBase(admin_db, "master\n");
-    }
-    admin = a.split("\n");
-  
-    b = DataBase.getDataBase(ban_sender_db);
-    if (b == null) {
-      DataBase.setDataBase(ban_sender_db, "김지훈\n");
-    } else {
-      ban_sender = b.split("\n");
-    }
-    
-    apikey = getApiKey();
-    kakaoApiKey = getKakaoApiKey();
-    kakaoEmail = getKakaoEmail();
-    kakaoPasswd = getKakaoPasswd();
+  a = DataBase.getDataBase(admin_db);
+  if (a == null) {
+    DataBase.setDataBase(admin_db, "master\n");
+  }
+  admin = a.split("\n");
+
+  b = DataBase.getDataBase(ban_sender_db);
+  if (b == null) {
+    DataBase.setDataBase(ban_sender_db, "김지훈\n");
+  } else {
+    ban_sender = b.split("\n");
+  }
+
+  apikey = getApiKey();
+  kakaoApiKey = getKakaoApiKey();
+  kakaoEmail = getKakaoEmail();
+  kakaoPasswd = getKakaoPasswd();
 };
 
 /* https://cafe.naver.com/nameyee/32361 */
-const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
-String.prototype.postposition = function() {
-    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
-        if( /[ㄱ-힣]/.test(point) ) {
-            const pointLen = point.normalize('NFD').split('').length;
-            const find = Postposition.find( b => b[0] == position );
-            if( find ) {
-                return point + find[pointLen-2];
-            } else return point + position;
-        } else {
-            return str;
-        }
-    })
-    return content;
+const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function () {
+  let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
+    if (/[ㄱ-힣]/.test(point)) {
+      const pointLen = point.normalize('NFD').split('').length;
+      const find = Postposition.find(b => b[0] == position);
+      if (find) {
+        return point + find[pointLen - 2];
+      } else return point + position;
+    } else {
+      return str;
+    }
+  })
+  return content;
 };
 
 let kimchi_count = 0;
@@ -339,8 +339,8 @@ function responseFix(
     try {
       if (msg.startsWith("ㅇ기능") || msg.startsWith("ㅇ?") || msg.startsWith("ㅇhelp") || msg.startsWith("ㅇh") || msg.startsWith("ㅇ도움")) {
         const input_help = msg.split(" ")[1];
-        if (typeof input_help == "undefined" || input_help == null || input_help == "" ) {
-          resp += printMainHelp();  
+        if (typeof input_help == "undefined" || input_help == null || input_help == "") {
+          resp += printMainHelp();
         } else {
           if (input_help.trim().includes("1")) {
             resp += printNewsHelp();
@@ -349,7 +349,7 @@ function responseFix(
           } else if (input_help.trim().includes("3")) {
             resp += printFunHelp();
           } else {
-            resp += printMainHelp();  
+            resp += printMainHelp();
           }
         }
       } else if (msg == "ㅇ날씨") {
@@ -389,7 +389,7 @@ function responseFix(
             resp += b;
           }
         }
-      } 
+      }
     } catch (error) {
       resp = "에러 발생.\n err : " + error;
     }
@@ -408,10 +408,10 @@ function onCreate(savedInstanceState, activity) {
   activity.setContentView(textView);
 }
 
-function onStart(activity) {}
-function onResume(activity) {}
-function onPause(activity) {}
-function onStop(activity) {}
+function onStart(activity) { }
+function onResume(activity) { }
+function onPause(activity) { }
+function onStop(activity) { }
 
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();

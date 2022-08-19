@@ -83,36 +83,36 @@ function getLearnedListArr() {
 }
 
 function parseCategory(c) {
-	switch (c) {
-	case "아무거나":
-		return "anything";
-	case "한식":
-		return "korea";
-	case "중식":
-		return "china";
-	case "일식":
-		return "japan";
-	case "양식":
-		return "western";
-	case "분식":
-		return "flour";
-	case "아시아음식":
-		return "asia";
-	case "도시락":
-		return "lunchbox";
-  case "육류":
-    return "meat";
-  case "고기":
-    return "meat";
-	case "치킨":
-		return "chicken";
-	case "패스트푸드":
-		return "fastfood";
-	case "술집":
-		return "bar";
-	default:
-		return "anything";
-	}
+  switch (c) {
+    case "아무거나":
+      return "anything";
+    case "한식":
+      return "korea";
+    case "중식":
+      return "china";
+    case "일식":
+      return "japan";
+    case "양식":
+      return "western";
+    case "분식":
+      return "flour";
+    case "아시아음식":
+      return "asia";
+    case "도시락":
+      return "lunchbox";
+    case "육류":
+      return "meat";
+    case "고기":
+      return "meat";
+    case "치킨":
+      return "chicken";
+    case "패스트푸드":
+      return "fastfood";
+    case "술집":
+      return "bar";
+    default:
+      return "anything";
+  }
 }
 
 function responseFix(
@@ -315,7 +315,7 @@ function responseFix(
         else if (msg.startsWith("ㅇ오점무")) {
           if (msg.substr(0, "ㅇ오점무 ".length) == "ㅇ오점무 ") {
             const input_words = msg.substring("ㅇ오점무 ".length).trim();
-            if ( input_words.includes("@") ) {
+            if (input_words.includes("@")) {
               input_ojeommu_words = input_words.split("@")[0];
               input_cat_words = input_words.split("@")[1];
             } else {
@@ -326,11 +326,11 @@ function responseFix(
             try {
               data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_ojeommu_words + "&cat=" + parseCategory(input_cat_words) + apikey_qry).text();
               data = JSON.parse(data);
-              
+
               date = new Date();
-              if ( date.getHours() > 15 && date.getHours() < 21 ) {
+              if (date.getHours() > 15 && date.getHours() < 21) {
                 tit = "오늘 저녁은 '" + data.hdr + "' 어떠세요?";
-              } else if ( date.getHours() > 22 && date.getHours() < 8) {
+              } else if (date.getHours() > 22 && date.getHours() < 8) {
                 tit = "오늘 야식은 '" + data.hdr + "' 어떠세요?";
               } else {
                 tit = "오늘 점심은 '" + data.hdr + "' 어떠세요?";
@@ -343,7 +343,7 @@ function responseFix(
                 thu = "";
                 Log.d(error);
               }
-              
+
               if (Bridge.isAllowed("comm")) {
                 Bridge.getScopeOf("comm").Kakao.sendLink(
                   room,
@@ -369,10 +369,10 @@ function responseFix(
                     replier.reply(resp);
                   });
               }
-              
+
             } catch (error) {
               resp += "조건에 맞는 맛집을 구하지 못했어요.";
-              if (error != null ) {
+              if (error != null) {
                 Log.e(error);
               }
             }
@@ -382,25 +382,25 @@ function responseFix(
         else if (msg.startsWith('ㅇ운세')) {
           if (msg == "ㅇ운세") {
             resp += "'ㅇ운세 (띠/별자리)' 로 오늘의 운세를 확인해보세요.";
-          } else if (msg.startsWith('ㅇ운세 ')){
+          } else if (msg.startsWith('ㅇ운세 ')) {
             try {
               jsoup_resp = org.jsoup.Jsoup.connect('http://search.naver.com/search.naver?query=' + msg.slice(4) + '+운세').get();
-  
-              if ( jsoup_resp.select('.api_title').first().text() == "운세" ) {
+
+              if (jsoup_resp.select('.api_title').first().text() == "운세") {
                 resp += "[ 오늘의 " + msg.slice(4) + " 운세 ]\n";
                 resp += jsoup_resp.select('._cs_fortune_text').first().text();
-                
-                if ( !jsoup_resp.select('.lst_infor').isEmpty() ) {
-                  lst_info = jsoup_resp.select('.lst_infor').first() ;
+
+                if (!jsoup_resp.select('.lst_infor').isEmpty()) {
+                  lst_info = jsoup_resp.select('.lst_infor').first();
                   dt = lst_info.select('dt').eachText();
                   dd = lst_info.select('dd').eachText();
-  
+
                   resp += "\n" + Lw + "\n";
-                  for ( let i = 0; i < dt.length && i < dd.length; i++ ) {
-                      resp += dt[i] + " | " ;
-                      resp += dd[i] + "\n" ;
+                  for (let i = 0; i < dt.length && i < dd.length; i++) {
+                    resp += dt[i] + " | ";
+                    resp += dd[i] + "\n";
                   }
-                }            
+                }
               } else {
                 resp = "";
                 resp += "운세 정보를 가져오지 못했어요.";
@@ -431,10 +431,10 @@ function onCreate(savedInstanceState, activity) {
   activity.setContentView(textView);
 }
 
-function onStart(activity) {}
-function onResume(activity) {}
-function onPause(activity) {}
-function onStop(activity) {}
+function onStart(activity) { }
+function onResume(activity) { }
+function onPause(activity) { }
+function onStop(activity) { }
 const onStartCompile = () => {
   if (!Bridge.isAllowed("comm")) {
     Api.compile("comm");
@@ -442,26 +442,26 @@ const onStartCompile = () => {
 };
 
 /* https://cafe.naver.com/nameyee/32361 */
-const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
-String.prototype.postposition = function() {
-    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
-        if( /[ㄱ-힣]/.test(point) ) {
-            const pointLen = point.normalize('NFD').split('').length;
-            const find = Postposition.find( b => b[0] == position );
-            if( find ) {
-                if ( pointLen < 2 ) {
-                  return point + position ;  
-                }
-                return point + find[pointLen-2];
-            } else {
-              return point + position;
-            }
-        } else {
-            return str;
+const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function () {
+  let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
+    if (/[ㄱ-힣]/.test(point)) {
+      const pointLen = point.normalize('NFD').split('').length;
+      const find = Postposition.find(b => b[0] == position);
+      if (find) {
+        if (pointLen < 2) {
+          return point + position;
         }
-    })
+        return point + find[pointLen - 2];
+      } else {
+        return point + position;
+      }
+    } else {
+      return str;
+    }
+  })
 
-    return content;
+  return content;
 };
 
 function onNotificationPosted(sbn, sm) {
@@ -471,24 +471,24 @@ function onNotificationPosted(sbn, sm) {
   if (actions == null) return;
   var userId = sbn.getUser().hashCode();
   for (var n = 0; n < actions.length; n++) {
-      var action = actions[n];
-      if (action.getRemoteInputs() == null) continue;
-      var bundle = sbn.getNotification().extras;
+    var action = actions[n];
+    if (action.getRemoteInputs() == null) continue;
+    var bundle = sbn.getNotification().extras;
 
-      var msg = bundle.get("android.text").toString();
-      var sender = bundle.getString("android.title");
-      var room = bundle.getString("android.subText");
-      if (room == null) room = bundle.getString("android.summaryText");
-      var isGroupChat = room != null;
-      if (room == null) room = sender;
-      var replier = new com.xfl.msgbot.script.api.legacy.SessionCacheReplier(packageName, action, room, false, "");
-      var icon = bundle.getParcelableArray("android.messages")[0].get("sender_person").getIcon().getBitmap();
-      var image = bundle.getBundle("android.wearable.EXTENSIONS");
-      if (image != null) image = image.getParcelable("background");
-      var imageDB = new com.xfl.msgbot.script.api.legacy.ImageDB(icon, image);
-      com.xfl.msgbot.application.service.NotificationListener.Companion.setSession(packageName, room, action);
-      if (this.hasOwnProperty("responseFix")) {
-          responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, userId != 0);
-      }
+    var msg = bundle.get("android.text").toString();
+    var sender = bundle.getString("android.title");
+    var room = bundle.getString("android.subText");
+    if (room == null) room = bundle.getString("android.summaryText");
+    var isGroupChat = room != null;
+    if (room == null) room = sender;
+    var replier = new com.xfl.msgbot.script.api.legacy.SessionCacheReplier(packageName, action, room, false, "");
+    var icon = bundle.getParcelableArray("android.messages")[0].get("sender_person").getIcon().getBitmap();
+    var image = bundle.getBundle("android.wearable.EXTENSIONS");
+    if (image != null) image = image.getParcelable("background");
+    var imageDB = new com.xfl.msgbot.script.api.legacy.ImageDB(icon, image);
+    com.xfl.msgbot.application.service.NotificationListener.Companion.setSession(packageName, room, action);
+    if (this.hasOwnProperty("responseFix")) {
+      responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName, userId != 0);
+    }
   }
 }

@@ -28,20 +28,20 @@ const onStartCompile = () => {
 };
 
 /* https://cafe.naver.com/nameyee/32361 */
-const Postposition = [['를','을'],['가','이가'], ['는','은'], ['와', '과'], ['로', '으로']];
-String.prototype.postposition = function() {
-    let content = this.replace( /(.)\$(.)/g, function (str, point, position) {
-        if( /[ㄱ-힣]/.test(point) ) {
-            const pointLen = point.normalize('NFD').split('').length;
-            const find = Postposition.find( b => b[0] == position );
-            if( find ) {
-                return point + find[pointLen-2];
-            } else return point + position;
-        } else {
-            return str;
-        }
-    })
-    return content;
+const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
+String.prototype.postposition = function () {
+  let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
+    if (/[ㄱ-힣]/.test(point)) {
+      const pointLen = point.normalize('NFD').split('').length;
+      const find = Postposition.find(b => b[0] == position);
+      if (find) {
+        return point + find[pointLen - 2];
+      } else return point + position;
+    } else {
+      return str;
+    }
+  })
+  return content;
 };
 
 const daumstockUrl = "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=";
@@ -87,7 +87,7 @@ function responseFix(
               "하락"
               ? "▼"
               : "-") + jsoup_resp.select(".num_rate").first().text().slice(2);
-          
+
           updown_item = jsoup_resp
             .select(".wrap_stock")
             .not(".hide")
@@ -104,7 +104,7 @@ function responseFix(
             resp += dt[i] + " | ";
             resp += dd[i] + "\n";
           }
-          
+
           Bridge.getScopeOf("comm").Kakao.sendLink(
             room,
             {
@@ -133,7 +133,7 @@ function responseFix(
         try {
           if (msg.substr(0, "ㅇ환율 ".length) == "ㅇ환율 " && msg.slice(4).length > 0) {
             jsoup_resp = org.jsoup.Jsoup.connect('https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=' + msg.slice(4) + '+환율').get();
-            if ( jsoup_resp.select('.coll_tit > .tit').first().text().includes("환율") ) {
+            if (jsoup_resp.select('.coll_tit > .tit').first().text().includes("환율")) {
               date = new Date();
               thu = jsoup_resp.select(".chart_exchange").select(".wrap_thumb > .thumb > img").get(1).attr("src") + "?" + date.getMinutes().toString() + date.getSeconds().toString();
               lnk = jsoup_resp.select(".chart_exchange").select(".wrap_thumb > .thumb").attr("href");
@@ -141,12 +141,12 @@ function responseFix(
               exchange = jsoup_resp.select(".inner_price > .txt_num").first().text();
               dl = jsoup_resp.select(".inner_price > .dl_comm").first();
               dd = dl.select('dd').eachText();
-              comp = dd[0].includes("상승") ? "▲" : "▼" + dd[0].slice(2).trim();              
+              comp = dd[0].includes("상승") ? "▲" : "▼" + dd[0].slice(2).trim();
               per = dd[1].trim();
-              
+
               table = jsoup_resp.select(".inner_info_price > table").first();
               td = table.select('td').eachText();
-              
+
               cb = td[2];
               cs = td[4];
               ss = td[7];
@@ -154,7 +154,7 @@ function responseFix(
 
               cdatetime = jsoup_resp.select(".info_price").select(".f_date").first().text();
               cinfo = jsoup_resp.select(".info_price").select(".f_info").first().text();
-              
+
               /*
               Log.d("1-" + thu);
               Log.d("2-" + lnk);
@@ -182,7 +182,7 @@ function responseFix(
               resp += "현찰 팔 때   | " + cs + "\n";
               resp += "송금 보낼 때 | " + ss + "\n";
               resp += "송금 받을 때 | " + sr + "\n";
-              resp += cdatetime + " " + cinfo ; 
+              resp += cdatetime + " " + cinfo;
 
               Bridge.getScopeOf("comm").Kakao.sendLink(
                 room,
@@ -198,9 +198,9 @@ function responseFix(
                     "SS": ss,
                     "SR": sr,
                     "COMP": comp,
-                    "PER" : per,
-                    "CDT" : cdatetime,
-                    "CINFO" : cinfo,
+                    "PER": per,
+                    "CDT": cdatetime,
+                    "CINFO": cinfo,
                   },
                 },
                 "custom"
@@ -214,7 +214,7 @@ function responseFix(
           } else {
             /* 달러 환율 */
             jsoup_resp = org.jsoup.Jsoup.connect('https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=' + "달러" + '+환율').get();
-            if ( jsoup_resp.select('.coll_tit > .tit').first().text() == "환율" ) {
+            if (jsoup_resp.select('.coll_tit > .tit').first().text() == "환율") {
               date = new Date();
               thu = jsoup_resp.select(".chart_exchange").select(".wrap_thumb > .thumb > img").get(1).attr("src") + "?" + date.getMinutes().toString() + date.getSeconds().toString();
               lnk = jsoup_resp.select(".chart_exchange").select(".wrap_thumb > .thumb").attr("href");
@@ -222,19 +222,19 @@ function responseFix(
               exchange = jsoup_resp.select(".inner_price > .txt_num").first().text();
               dl = jsoup_resp.select(".inner_price > .dl_comm").first();
               dd = dl.select('dd').eachText();
-              comp = dd[0].includes("상승") ? "▲" : "▼" + dd[0].slice(2).trim();              
+              comp = dd[0].includes("상승") ? "▲" : "▼" + dd[0].slice(2).trim();
               per = dd[1].trim();
               table = jsoup_resp.select(".inner_info_price > table").first();
               td = table.select('td').eachText();
-              
+
               cb = td[2];
               cs = td[4];
               ss = td[7];
               sr = td[9];
-              
+
               cdatetime = jsoup_resp.select(".info_price").select(".f_date").first().text();
               cinfo = jsoup_resp.select(".info_price").select(".f_info").first().text();
-              
+
 
               /*
               Log.d("1-" + thu);
@@ -263,7 +263,7 @@ function responseFix(
               resp += "현찰 팔 때   | " + cs + "\n";
               resp += "송금 보낼 때 | " + ss + "\n";
               resp += "송금 받을 때 | " + sr + "\n";
-              resp += cdatetime + " " + cinfo ; 
+              resp += cdatetime + " " + cinfo;
 
               Bridge.getScopeOf("comm").Kakao.sendLink(
                 room,
@@ -279,9 +279,9 @@ function responseFix(
                     "SS": ss,
                     "SR": sr,
                     "COMP": comp,
-                    "PER" : per,
-                    "CDT" : cdatetime,
-                    "CINFO" : cinfo,
+                    "PER": per,
+                    "CDT": cdatetime,
+                    "CINFO": cinfo,
                   },
                 },
                 "custom"
@@ -292,7 +292,7 @@ function responseFix(
                   replier.reply(resp);
                 });
             }
-          } 
+          }
         } catch (error) {
           Log.e(error, true);
           resp = "";
