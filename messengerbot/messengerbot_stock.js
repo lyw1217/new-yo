@@ -43,7 +43,8 @@ String.prototype.postposition = function() {
     return content;
 };
 
-let daumstockUrl = "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=";
+const daumstockUrl = "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=";
+const exchangeUrl = "http://fx.kebhana.com/FER1101M.web";
 let data;
 
 function responseFix(
@@ -71,7 +72,7 @@ function responseFix(
 
         if (!jsoup_resp.select(".num_stock").isEmpty()) {
           date = new Date();
-          thu = jsoup_resp.select(".img_stock > .thumb > .thumb_img").first().attr("src") + "?" + date.getSeconds().toString();
+          thu = jsoup_resp.select(".img_stock > .thumb > .thumb_img").first().attr("src") + "?" + date.getMinutes().toString() + date.getSeconds().toString();
           lnk = jsoup_resp.select(".img_stock > .thumb").first().attr("href");
           hdr = jsoup_resp.select(".icon_stock").text() == "상승" ? "📈 " : "📉 " + jsoup_resp.select(".tit_company").text();
           price = jsoup_resp.select(".num_stock").first().text() +
@@ -126,6 +127,175 @@ function responseFix(
             .catch((e) => {
               replier.reply(resp);
             });
+        }
+      } else if (msg.startsWith("ㅇ환율")) {
+        try {
+          if (msg.substr(0, "ㅇ환율 ".length) == "ㅇ환율 " && msg.slice(4).length > 0) {
+            jsoup_resp = org.jsoup.Jsoup.connect('https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=' + msg.slice(4) + '+환율').get();
+            if ( jsoup_resp.select('.coll_tit > .tit').first().text().includes("환율") ) {
+              date = new Date();
+              thu = jsoup_resp.select(".chart_exchange").select(".wrap_thumb > .thumb > img").get(1).attr("src") + "?" + date.getMinutes().toString() + date.getSeconds().toString();
+              lnk = jsoup_resp.select(".chart_exchange").select(".wrap_thumb > .thumb").attr("href");
+              cur = jsoup_resp.select(".inner_price > .f_etit").first().text();
+              exchange = jsoup_resp.select(".inner_price > .txt_num").first().text();
+              dl = jsoup_resp.select(".inner_price > .dl_comm").first();
+              dd = dl.select('dd').eachText();
+              comp = dd[0].includes("상승") ? "▲" : "▼" + dd[0].slice(2).trim();              
+              per = dd[1].trim();
+              
+              table = jsoup_resp.select(".inner_info_price > table").first();
+              td = table.select('td').eachText();
+              
+              cb = td[2];
+              cs = td[4];
+              ss = td[7];
+              sr = td[9];
+
+              cdatetime = jsoup_resp.select(".info_price").select(".f_date").first().text();
+              cinfo = jsoup_resp.select(".info_price").select(".f_info").first().text();
+              
+              /*
+              Log.d("1-" + thu);
+              Log.d("2-" + lnk);
+              Log.d("3-" + cur);
+              Log.d("4-" + exchange);
+              Log.d("5-" + dl);
+              Log.d("6-" + dd);
+              Log.d("7-" + comp);
+              Log.d("8-" + per);
+              Log.d("9-" + table);
+              Log.d("10-" + td);
+              Log.d("11-" + cb);
+              Log.d("12-" + cs);
+              Log.d("13-" + ss);
+              Log.d("14-" + sr);
+              Log.d("15-" + cdatetime);
+              Log.d("16-" + cinfo);
+              */
+
+              resp += cur + "환율\n";
+              resp += "1 " + cur + "당 " + exchange + " 원\n";
+              resp += "전일대비 " + comp + "\n";
+              resp += Lw + "\n\n";
+              resp += "현찰 살 때   | " + cb + "\n";
+              resp += "현찰 팔 때   | " + cs + "\n";
+              resp += "송금 보낼 때 | " + ss + "\n";
+              resp += "송금 받을 때 | " + sr + "\n";
+              resp += cdatetime + " " + cinfo ; 
+
+              Bridge.getScopeOf("comm").Kakao.sendLink(
+                room,
+                {
+                  template_id: 81695,
+                  template_args: {
+                    "THU": thu,
+                    "LNK": lnk,
+                    "CUR": cur,
+                    "EXCHANGE": exchange,
+                    "CB": cb,
+                    "CS": cs,
+                    "SS": ss,
+                    "SR": sr,
+                    "COMP": comp,
+                    "PER" : per,
+                    "CDT" : cdatetime,
+                    "CINFO" : cinfo,
+                  },
+                },
+                "custom"
+              )
+                .then((e) => {
+                })
+                .catch((e) => {
+                  replier.reply(resp);
+                });
+            }
+          } else {
+            /* 달러 환율 */
+            jsoup_resp = org.jsoup.Jsoup.connect('https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=' + "달러" + '+환율').get();
+            if ( jsoup_resp.select('.coll_tit > .tit').first().text() == "환율" ) {
+              date = new Date();
+              thu = jsoup_resp.select(".chart_exchange").select(".wrap_thumb > .thumb > img").get(1).attr("src") + "?" + date.getMinutes().toString() + date.getSeconds().toString();
+              lnk = jsoup_resp.select(".chart_exchange").select(".wrap_thumb > .thumb").attr("href");
+              cur = jsoup_resp.select(".inner_price > .f_etit").first().text();
+              exchange = jsoup_resp.select(".inner_price > .txt_num").first().text();
+              dl = jsoup_resp.select(".inner_price > .dl_comm").first();
+              dd = dl.select('dd').eachText();
+              comp = dd[0].includes("상승") ? "▲" : "▼" + dd[0].slice(2).trim();              
+              per = dd[1].trim();
+              table = jsoup_resp.select(".inner_info_price > table").first();
+              td = table.select('td').eachText();
+              
+              cb = td[2];
+              cs = td[4];
+              ss = td[7];
+              sr = td[9];
+              
+              cdatetime = jsoup_resp.select(".info_price").select(".f_date").first().text();
+              cinfo = jsoup_resp.select(".info_price").select(".f_info").first().text();
+              
+
+              /*
+              Log.d("1-" + thu);
+              Log.d("2-" + lnk);
+              Log.d("3-" + cur);
+              Log.d("4-" + exchange);
+              Log.d("5-" + dl);
+              Log.d("6-" + dd);
+              Log.d("7-" + comp);
+              Log.d("8-" + per);
+              Log.d("9-" + table);
+              Log.d("10-" + td);
+              Log.d("11-" + cb);
+              Log.d("12-" + cs);
+              Log.d("13-" + ss);
+              Log.d("14-" + sr);
+              Log.d("15-" + cdatetime);
+              Log.d("16-" + cinfo);
+              */
+
+              resp += cur + "환율\n";
+              resp += "1 " + cur + "당 " + exchange + " 원\n";
+              resp += "전일대비 " + comp + "\n";
+              resp += Lw + "\n\n";
+              resp += "현찰 살 때   | " + cb + "\n";
+              resp += "현찰 팔 때   | " + cs + "\n";
+              resp += "송금 보낼 때 | " + ss + "\n";
+              resp += "송금 받을 때 | " + sr + "\n";
+              resp += cdatetime + " " + cinfo ; 
+
+              Bridge.getScopeOf("comm").Kakao.sendLink(
+                room,
+                {
+                  template_id: 81695,
+                  template_args: {
+                    "THU": thu,
+                    "LNK": lnk,
+                    "CUR": cur,
+                    "EXCHANGE": exchange,
+                    "CB": cb,
+                    "CS": cs,
+                    "SS": ss,
+                    "SR": sr,
+                    "COMP": comp,
+                    "PER" : per,
+                    "CDT" : cdatetime,
+                    "CINFO" : cinfo,
+                  },
+                },
+                "custom"
+              )
+                .then((e) => {
+                })
+                .catch((e) => {
+                  replier.reply(resp);
+                });
+            }
+          } 
+        } catch (error) {
+          Log.e(error, true);
+          resp = "";
+          resp += "환율 정보를 가져오지 못했어요.";
         }
       }
     } catch (error) {
