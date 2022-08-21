@@ -25,6 +25,8 @@ let Lw = Bridge.getScopeOf("comm").Lw
 let fun_db = Bridge.getScopeOf("comm").fun_db;
 let learn_db = Bridge.getScopeOf("comm").learn_db;
 let learn_db_list = Bridge.getScopeOf("comm").learn_db_list;
+let musume_db = Bridge.getScopeOf("comm").musume_db;
+let nonsense_db = Bridge.getScopeOf("comm").nonsense_db;
 let drwNo = 0;
 let lottoUrl =
   "http://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=";
@@ -129,6 +131,16 @@ function responseFix(
   let run = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room));
   if (run == null) {
     DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room), "t");
+  }
+
+  if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "t") {
+    if (msg.includes(DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"))) {
+      resp += sender + "님, 정답입니다.\n";
+      resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
+      DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "f");
+    } else if (msg.includes("힌트")) {
+      resp += "힌트는 " + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint");
+    }
   }
 
   if (run == "t") {
@@ -412,6 +424,163 @@ function responseFix(
             }
           }
         }
+
+        else if (msg.startsWith('ㅇ무스메 ')) {
+          if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)) == null) {
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), "");
+          }
+
+          if (msg.slice(5).startsWith("초기화") || msg.slice(5).startsWith("리셋")) {
+            resp += "무스메를 초기화합니다.";
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), "");
+
+          }
+
+          else if (msg.slice(5).startsWith("확인") || msg.slice(5).startsWith("인원") || msg.slice(5).startsWith("현황")) {
+            p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+            resp += "[무스메 참가 인원]\n";
+            num = 0;
+            for (let i = 0; i < p_list.length; i++) {
+              if (p_list[i].length > 0) {
+                num += 1;
+                resp += num.toString() + ". " + p_list[i] + "\n";
+              }
+            }
+            resp += "총 " + num.toString() + "명";
+
+          }
+
+          else if (msg.slice(5).startsWith("추가") | msg.slice(5).startsWith("참여") | msg.slice(5).startsWith("참가")) {
+            input_p = msg.slice(8).split(" ");
+            num = 0;
+            p = [];
+            for (let i = 0; i < input_p.length; i++) {
+              if (input_p[i].length > 0) {
+                num += 1;
+                p.push(input_p[i]);
+              }
+            }
+
+            if (num > 0) {
+              p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+              total_num = 0;
+              dup_flag = false;
+              dup_person = "";
+              for (let i = 0; i < p_list.length; i++) {
+                if (p_list[i].length > 0) {
+                  total_num += 1;
+                  if (p.indexOf(p_list[i]) > 0) {
+                    dup_flag = true;
+                    dup_person = p_list[i];
+                    break;
+                  }
+                }
+              }
+
+              if (!dup_flag) {
+                DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), p.join('\n') + "\n");
+                resp += "무스메 인원 추가 : " + p.join(" ") + " (+" + num.toString() + "명 / 총 " + (num + total_num).toString() + "명)";
+              } else {
+                resp += "중복되는 인원(" + dup_person + ")이 있어요.";
+              }
+            } else {
+              resp += "`ㅇ무스메 추가 (인원1) (인원2)...` 형식에 맞게 인원을 추가해주세요.";
+            }
+          }
+
+          else if (msg.slice(5).startsWith("삭제") | msg.slice(5).startsWith("제거") | msg.slice(5).startsWith("제외")) {
+            p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+            total_num = 0;
+            p = [];
+            for (let i = 0; i < p_list.length; i++) {
+              if (p_list[i].length > 0) {
+                total_num += 1;
+                p.push(p_list[i]);
+              }
+            }
+
+            find_flag = false;
+            input_p = msg.slice(8);
+            for (let i = 0; i < p.length; i++) {
+              if (input_p == p[i]) {
+                find_flag = true;
+                filtered_list = p.filter(
+                  (element) => element !== input_p
+                );
+                DataBase.setDataBase(
+                  Bridge.getScopeOf("comm").sprintf(musume_db, room),
+                  filtered_list.join("\n") + "\n"
+                );
+                resp += input_p + " :  무스메에서 제외했어요.";
+                break;
+              }
+            }
+
+            if (!find_flag) {
+              resp += input_p + " : 무스메 참여 인원이 아니에요.";
+            }
+          }
+
+          else if (msg.slice(5).startsWith("시작") | msg.slice(5).startsWith("진행")) {
+            input_num = msg.slice(8);
+            n = parseInt(input_num);
+            if (!isNaN(n)) {
+              p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+              total_num = 0;
+              p = [];
+              for (let i = 0; i < p_list.length; i++) {
+                if (p_list[i].length > 0) {
+                  total_num += 1;
+                  p.push(p_list[i]);
+                }
+              }
+
+              if (total_num >= n) {
+                if (total_num > 0) {
+                  rand_num_list = [];
+                  for (let i = 0; i < n; i++) {
+                    for (let j = 0; ; j++) {
+                      if (j > 10000) break;
+                      rand_num = getRandomIntInclusive(0, total_num - 1);
+                      if (!rand_num_list.includes(rand_num)) {
+                        rand_num_list.push(rand_num);
+                        break;
+                      }
+                    }
+                    resp += "[" + p[rand_num] + "] ";
+                  }
+                  resp += "당첨!";
+                } else {
+                  resp += "`ㅇ무스메 추가` 명령어로 인원을 추가해보세요.";
+                }
+              } else {
+                resp += "무스메 참여 인원(" + total_num.toString() + ") 보다 많은 숫자는 안돼요.";
+              }
+            } else {
+              resp += "`ㅇ무스메 시작 (당첨인원 수)`로 무스메를 시작해보세요.";
+            }
+          }
+        }
+
+        else if (msg.startsWith('ㅇ넌센스')) {
+          if (msg == 'ㅇ넌센스') {
+            quiz = Game.setNewQuestion();
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender", sender);
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question", quiz.question);
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer", quiz.answer);
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint", quiz.hint);
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why", quiz.why);
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "t");
+            resp += quiz.question + "\n정답을 바로 이야기해보세요. 잘 모르겠으면 '힌트'";
+          } else if (msg.slice(5).startsWith("정답") && Bridge.getScopeOf("comm").isAdmin(sender)) {
+            replier.reply(sender, "정답은\n" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"));
+          } else if ((msg.slice(5).startsWith("그만") || msg.slice(5).startsWith("중지") || msg.slice(5).startsWith("멈춰") || msg.slice(5).startsWith("포기")) 
+                && (Bridge.getScopeOf("comm").isAdmin(sender) || (sender == DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender")))) {
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "f");
+            resp += "아쉽네요. 정답은\n";
+            resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer");
+          }
+        }
       } catch (error) {
         resp += "에러 발생.\n err : " + error;
       }
@@ -492,3 +661,7 @@ function onNotificationPosted(sbn, sm) {
     }
   }
 }
+
+const { NonSenseGame } = require('nonsense');
+const Game = new NonSenseGame();
+let quiz = Game.setNewQuestion();

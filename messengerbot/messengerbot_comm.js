@@ -32,6 +32,8 @@ const kakaoPasswd = getKakaoPasswd();
 let fun_db = db_root + "fun/";
 let learn_db = db_root + "learn/";
 let learn_db_list = db_root + "learn_list/words";
+let musume_db = db_root + "room/%s/musume";
+let nonsense_db = db_root + "room/%s/nonsense";
 
 let admin = getAdminUser();
 let ban_sender = getBanUser();
@@ -242,7 +244,10 @@ function printFunHelp() {
   temp_str += "□ `ㅇ운세 (띠/별자리)`\n    띠/별자리 오늘의 운세 조회\n";
   temp_str += "□ `ㅇ환율`\n    달러 실시간 환율 조회\n";
   temp_str += "    - `ㅇ환율 (지역/화폐)` : 지역/화폐 실시간 환율 조회\n";
-  temp_str += "□ `ㅈ(종목명)`\n    주식 종목 현재가 조회";
+  temp_str += "□ `ㅈ(종목명)`\n    주식 종목 현재가 조회\n";
+  temp_str += "□ `ㅇ무스메`\n    랜덤뽑기";
+  temp_str += "□ `ㅇ넌센스`\n    넌센스 문제!";
+  temp_str += "    - `ㅇ넌센스 포기` : 넌센스 문제를 시작한 사람만 포기 가능\n";
 
   return temp_str;
 }
@@ -264,23 +269,44 @@ function printOjeomMuHelp() {
   return temp_str;
 }
 
+function printMusumeHelp() {
+  let temp_str = "";
+  temp_str += "🎰 무스메 사용 방법 🎲\n";
+  temp_str += "□ `ㅇ무스메 초기화`\n\t  무스메 설정 초기화\n";
+  temp_str += "□ `ㅇ무스메 추가 (인원1) (인원2)...`\n\t  무스메 참가 인원 추가\n";
+  temp_str += "□ `ㅇ무스메 삭제 (인원)`\n\t  무스메 참가 인원에서 제외\n";
+  temp_str += "□ `ㅇ무스메 인원`\n\t  무스메 참가 인원 확인\n";
+  temp_str += "□ `ㅇ무스메 시작 (당첨인원 수)`\n\t  당첨인원 수 만큼 랜덤 뽑기 시작\n";
+  temp_str += "-------------------------------\n";
+  temp_str += "- 띄어쓰기로 구분하여 한 번에 추가 가능\n";
+  temp_str += "- 삭제는 한 명씩 가능";
+
+  return temp_str;
+}
+
+function pad(n, width)
+{
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+
+}
 function getDataTimeStr() {
   let d = new Date();
   return (
     "[" +
     d.getFullYear().toString() +
     "-" +
-    d.getMonth().toString() +
+    pad((d.getMonth()+1).toString(), 2) +
     "-" +
-    d.getDay().toString() +
+    pad(d.getDate().toString(), 2) +
     "_" +
-    d.getHours().toString() +
+    pad(d.getHours().toString(), 2) +
     ":" +
-    d.getMinutes().toString() +
+    pad(d.getMinutes().toString(), 2) +
     ":" +
-    d.getSeconds().toString() +
+    pad(d.getSeconds().toString(), 2) +
     "." +
-    d.getMilliseconds().toString() +
+    pad(d.getMilliseconds().toString(), 2) +
     "] "
   );
 }
@@ -364,6 +390,9 @@ function responseFix(
 
       } else if (msg == "ㅇ오점무") {
         resp += printOjeomMuHelp();
+
+      } else if (msg == "ㅇ무스메") {
+        resp += printMusumeHelp();
 
       } else if (msg.startsWith("ㅇ루트") && isAdmin(sender)) {
         if (msg.includes("밴")) {
