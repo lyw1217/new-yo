@@ -17,8 +17,8 @@ let room_ctx_db = Bridge.getScopeOf("comm").room_ctx_db;
 let room_run_db = Bridge.getScopeOf("comm").room_run_db;
 let subslist_db = Bridge.getScopeOf("comm").subslist_db;
 
-const subs_hour = 14;
-const subs_min = 8;
+const subs_hour = 8;
+const subs_min = 30;
 let url = "http://mumeog.site:30100";
 let article_qry = "/article?paper=";
 
@@ -97,9 +97,9 @@ function responseFix(
 ) {
   let data;
   let resp = "";
-  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room));
+  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room), "t");
+    DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room), "t");
   }
 
   if (run == "t") {
@@ -238,7 +238,7 @@ function responseFix(
               if (subs_flag) {
                 resp += "이미 구독 중이에요.";
               } else {
-                DataBase.appendDataBase(subslist_db, sender + "\n");
+                DataBase.appendDataBase(subslist_db, room + "\n");
                 resp +=
                   "구독했어요. 매일 아침 " +
                   subs_hour.toString() +
@@ -264,12 +264,68 @@ function responseFix(
 }
 
 let send_flag = true;
+let old_hour = -1;
 const INTER = setInterval(() => {
-  date = new Date();
+  let date = new Date();
   let data;
   let resp = "";
 
-  if (date.getHours() == subs_hour && date.getMinutes() == subs_min) {
+  let cur_hour = date.getHours();
+  let cur_min = date.getMinutes();
+  let cur_sec = date.getSeconds();
+
+  if (cur_sec % 5 == 0) {
+    if (!Bridge.isAllowed("comm") && !Api.isCompiling("comm")) {
+      try {
+        Log.i("TRY API RELOAD!");
+        Api.reload("comm", true);
+        Log.i("API RELOAD COMPLETE!!");
+      } catch (error) {
+        Log.e("Api.reload Error. " + error);
+      }
+
+    }
+  }
+
+  if (cur_hour != old_hour) {
+    old_hour = cur_hour;
+    Log.i("getBuild() = " + Device.getBuild().toString());
+    Log.i("getAndroidVersionCode() = " + Device.getAndroidVersionCode().toString());
+    Log.i("getAndroidVersionName() = " + Device.getAndroidVersionName().toString());
+    Log.i("getPhoneBrand() = " + Device.getPhoneBrand().toString());
+    Log.i("getPhoneModel() = " + Device.getPhoneModel().toString());
+    Log.i("isCharging() = " + Device.isCharging().toString());
+    Log.i("getPlugType() = " + Device.getPlugType().toString());
+    Log.i("getBatteryLevel() = " + Device.getBatteryLevel().toString());
+    Log.i("getBatteryHealth() = " + Device.getBatteryHealth().toString());
+    Log.i("getBatteryTemperature() = " + Device.getBatteryTemperature().toString());
+    Log.i("getBatteryVoltage() = " + Device.getBatteryVoltage().toString());
+    Log.i("getBatteryStatus() = " + Device.getBatteryStatus().toString());
+    function byteCalculation(bytes) {
+      var bytes = parseInt(bytes);
+      var s = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+      var e = Math.floor(Math.log(bytes) / Math.log(1024));
+
+      if (e == "-Infinity") return "0 " + s[0];
+      else
+        return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + "" + s[e];
+    }
+
+    function getMemoryInfo() {
+      var am = Api.getContext().getSystemService(Api.getContext().ACTIVITY_SERVICE);
+      var mem = new android.app.ActivityManager.MemoryInfo();
+      am.getMemoryInfo(mem);
+
+      var useMem = Math.floor(mem.totalMem - mem.availMem);
+
+      var percent = Math.floor((useMem / mem.totalMem) * 100);
+
+      return byteCalculation(useMem) + " / " + byteCalculation(mem.totalMem) + "(" + percent + "%)";
+    }
+    Log.i(getMemoryInfo());
+  }
+
+  if (cur_hour == subs_hour && cur_min == subs_min) {
     if (send_flag) {
       Log.d("구독 전송 시도");
       send_flag = false;
@@ -279,12 +335,16 @@ const INTER = setInterval(() => {
             url + article_qry + "hankyung" + apikey_qry
           ).text();
           data = JSON.parse(data);
+          resp = "";
           resp +=
             "[ " +
             data.contents[0].paper +
-            " ]\n" +
+            " ]\n" + Lw +
             data.contents[0].content +
             "\n\n";
+          replier.reply(resp);
+          resp = "";
+          flag = true;
         } catch (error) { }
 
         try {
@@ -292,12 +352,16 @@ const INTER = setInterval(() => {
             url + article_qry + "maekyung" + apikey_qry
           ).text();
           data = JSON.parse(data);
+          resp = "";
           resp +=
             "[ " +
             data.contents[0].paper +
-            " ]\n" +
+            " ]\n" + Lw +
             data.contents[0].content +
             "\n\n";
+          replier.reply(resp);
+          resp = "";
+          flag = true;
         } catch (error) { }
 
         try {
@@ -305,18 +369,22 @@ const INTER = setInterval(() => {
             url + article_qry + "quicknews" + apikey_qry
           ).text();
           data = JSON.parse(data);
+          resp = "";
           resp +=
-            "[ " + data.contents[0].paper + " ]\n" + data.contents[0].content;
+            "[ " + data.contents[0].paper + " ]\n" + Lw + data.contents[0].content;
+          replier.reply(resp);
+          resp = "";
+          flag = true;
         } catch (error) { }
 
         if (resp.length > 0) {
           let ssl = DataBase.getDataBase(subslist_db);
           let subs_send_list = ssl.split("\n");
           for (let ss of subs_send_list) {
-            let canrpy = Api2.canReply(ss)
+            let canrpy = Api.canReply(ss)
             Log.d(ss + "에게 구독 전송 가능 여부 :" + canrpy.toString());
             if (canrpy) {
-              Log.d(ss + "에게 구독 전송 성공 여부 : " + Api2.send(ss, resp).toString());
+              Log.d(ss + "에게 구독 전송 성공 여부 : " + Api.replyRoom(ss, resp, true).toString());
             }
           }
         }
