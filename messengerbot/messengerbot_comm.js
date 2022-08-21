@@ -181,8 +181,8 @@ function printNewsHelp() {
   temp_str += "□ `ㅇ매경`\n\t 매일경제 매.세.지 조회\n";
   temp_str += "□ `ㅇ간추린`\n\t 간추린뉴스 조회\n";
   temp_str += "--------------------------------\n";
-  temp_str += "□ `ㅇ구독`\n\t 개인톡으로 매일 8시 30분에 뉴스를 제공\n";
-  temp_str += "□ `ㅇ구독해제`\n\t 뉴스 구독 해제";
+  //temp_str += "□ `ㅇ구독`\n\t 개인톡으로 매일 8시 30분에 뉴스를 제공\n";
+  //temp_str += "□ `ㅇ구독해제`\n\t 뉴스 구독 해제";
 
   return temp_str;
 }
@@ -192,6 +192,7 @@ function printWeatherHelp() {
   temp_str += "🌤 날씨 🌤\n";
   temp_str += "현재 시간을 기준으로 날씨 정보를 알려줍니다.\n";
   temp_str += "□ `ㅇ날씨 (동네)`\n    - 지금 날씨 조회(네이버/구글 검색)\n";
+  temp_str += "□ `ㅇ주간 (동네)`\n    - 오늘/내일 날씨 조회(네이버 검색)\n";
   temp_str += "□ `ㅇ지금 (동네) 날씨`\n    - 지금 날씨 조회(기상청 API)\n";
   temp_str += "□ `ㅇ예보`\n    - 예보 조회 가능 지역 확인\n";
   temp_str += "    - `ㅇ예보 (지역)` : 오늘의 기상 예보 조회\n";
@@ -199,7 +200,7 @@ function printWeatherHelp() {
   //temp_str += "'ㅇ내일 (동네) 날씨'\n\t - 내일 날씨 조회(미지원)\n";
   temp_str += "[예시]\n";
   temp_str += "  ㅇ날씨 판교\n";
-  temp_str += "  ㅇ날씨 런던\n";
+  temp_str += "  ㅇ주간 을지로\n";
   temp_str += "  ㅇ지금 서현 날씨\n";
   temp_str += "  ㅇ예보 서울\n";
   //temp_str += "\tㅇ오늘 성남 분당 날씨(미지원)\n";

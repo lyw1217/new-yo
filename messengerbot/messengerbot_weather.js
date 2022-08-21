@@ -297,6 +297,176 @@ function responseFix(
               });
           }
         }
+      } else if (msg.startsWith("ㅇ주간 ")) {
+        if (msg == "ㅇ주간 ") {
+          return;
+        }
+        naver_resp = org.jsoup.Jsoup.connect('http://search.naver.com/search.naver?query=' + msg.slice(4) + '+날씨').get();
+        if (!naver_resp.select("._area_panel > .title").isEmpty() || !naver_resp.select(".weekly_forecast_area").isEmpty()) {
+          sky_sts = naver_resp.select(".weather_main > i").first().attr("class").split(" ")[1];
+          thu = Bridge.getScopeOf("comm").sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          lnk = 'http://search.naver.com/search.naver?query=' + msg.slice(4) + '+날씨';
+          loc = naver_resp.select("._area_panel > .title").first().text();
+          temp = naver_resp.select(".temperature_text").first().text().slice("현재 온도".length);
+          sky = "";
+          temp_summary = naver_resp.select(".temperature_info > .summary").first().text().split(" ");
+          time = Bridge.getScopeOf("comm").sprintf("%s %s%s %s", temp_summary[0], temp_summary[1], (temp_summary[2].includes("높") ? "↑" : "↓"), temp_summary[3]);
+
+          summary = naver_resp.select(".summary_list");
+          dt = summary.select("dt").eachText();
+          dd = summary.select("dd").eachText();
+          for (let i = 0; i < dt.length && i < dd.length; i++) {
+            tmp_dt = dt[i].trim();
+            if (tmp_dt.includes("습도")) {
+              hum_tit = tmp_dt;
+              hum = dd[i];
+            } else if (tmp_dt.includes("바람")) {
+              wind_tit = tmp_dt;
+              wind = dd[i];
+            } else if (tmp_dt.includes("체감")) {
+              pro_tit = tmp_dt;
+              pro = dd[i];
+            }
+          }
+
+          resp += loc + "\n";
+          resp += time + "\n";
+          resp += "기온 : " + temp + "C" + "\n";
+          resp += Bridge.getScopeOf("comm").sprintf("%s : ", hum_tit) + hum + "\n";
+          resp += Bridge.getScopeOf("comm").sprintf("%s : ", wind_tit) + wind + "\n";
+          resp += Bridge.getScopeOf("comm").sprintf("%s : ", pro_tit) + pro + "C" + "\n";
+
+          let mise = "";
+          let cho = "";
+          let misecho = "";
+          li = naver_resp.select(".today_chart_list > li").eachText();
+          for (let i = 0; i < li.length; i++) {
+            if (li[i].startsWith("미세먼지")) {
+              mise = "미세 : " + li[i].slice(4).trim();
+            } else if (li[i].startsWith("초미세먼지")) {
+              cho = "초미세 : " + li[i].slice(5).trim();
+            }
+          }
+
+          if (mise.length > 0) {
+            resp += mise + "\n";
+            misecho += mise + ", ";
+          }
+          if (cho.length > 0) {
+            resp += cho + "\n";
+            misecho += cho;
+          }
+
+
+          week_list = naver_resp.select(".week_list").first();
+          td_li = week_list.select('.week_item').first();
+          td_date = td_li.select(".day_data > .cell_date > .date_inner > .date").eachText()[0];
+          td_am_pro = td_li.select(".day_data > .cell_weather > .weather_inner").first().select(".weather_left > .rainfall").text();
+          td_l_temp_tit = "최저";
+          td_l_temp = td_li.select(".day_data > .cell_temperature > .temperature_inner > .lowest").first().text().slice(4);
+          td_h_temp_tit = "최고";
+          td_h_temp = td_li.select(".day_data > .cell_temperature > .temperature_inner > .highest").first().text().slice(4);
+          sky_sts = td_li.select(".day_data > .cell_weather > .weather_inner > i").first().attr("class").split(" ")[1];
+          thu_2 = Bridge.getScopeOf("comm").sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+
+          td_pm_pro = td_li.select(".day_data > .cell_weather > .weather_inner").get(1).select(".weather_left > .rainfall").text();
+          sky_sts = td_li.select(".cell_weather > .weather_inner > i").get(1).attr("class").split(" ")[1];
+          thu_3 = Bridge.getScopeOf("comm").sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+
+
+
+          tm_li = week_list.select('.week_item').get(1);
+          tm_date = tm_li.select(".day_data > .cell_date > .date_inner > .date").eachText()[0];
+          tm_am_pro = tm_li.select(".day_data > .cell_weather > .weather_inner").first().select(".weather_left > .rainfall").text();
+          tm_l_temp_tit = "최저";
+          tm_l_temp = tm_li.select(".day_data > .cell_temperature > .temperature_inner > .lowest").first().text().slice(4);
+          tm_h_temp_tit = "최고";
+          tm_h_temp = tm_li.select(".day_data > .cell_temperature > .temperature_inner > .highest").first().text().slice(4);
+          sky_sts = tm_li.select(".day_data > .cell_weather > .weather_inner > i").first().attr("class").split(" ")[1];
+          thu_4 = Bridge.getScopeOf("comm").sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+
+          tm_pm_pro = tm_li.select(".day_data > .cell_weather > .weather_inner").get(1).select(".weather_left > .rainfall").text();
+          sky_sts = tm_li.select(".cell_weather > .weather_inner > i").get(1).attr("class").split(" ")[1];
+          thu_5 = Bridge.getScopeOf("comm").sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          
+          /*
+          Log.d("td_date = " + td_date);
+          Log.d("td_am_pro = " + td_am_pro);
+          Log.d("td_l_temp_tit = " + td_l_temp_tit);
+          Log.d("td_l_temp = " + td_l_temp);
+          Log.d("td_h_temp_tit = " + td_h_temp_tit);
+          Log.d("td_h_temp = " + td_h_temp);
+          Log.d("sky_sts = " + sky_sts);
+          Log.d("thu_2 = " + thu_2);
+          Log.d("td_pm_pro = " + td_pm_pro);
+          Log.d("sky_sts = " + sky_sts);
+          Log.d("thu_3 = " + thu_3);
+          Log.d("tm_date = " + tm_date);
+          Log.d("tm_am_pro = " + tm_am_pro);
+          Log.d("tm_l_temp_tit = " + tm_l_temp_tit);
+          Log.d("tm_l_temp = " + tm_l_temp);
+          Log.d("tm_h_temp_tit = " + tm_h_temp_tit);
+          Log.d("tm_h_temp = " + tm_h_temp);
+          Log.d("sky_sts = " + sky_sts);
+          Log.d("thu_4 = " + thu_4);
+          Log.d("tm_pm_pro = " + tm_pm_pro);
+          Log.d("tm_l_temp_tit = " + tm_l_temp_tit);
+          Log.d("tm_l_temp = " + tm_l_temp);
+          Log.d("tm_h_temp_tit = " + tm_h_temp_tit);
+          Log.d("tm_h_temp = " + tm_h_temp);
+          Log.d("sky_sts = " + sky_sts);
+          Log.d("thu_5 = " + thu_5);
+          */
+
+          Bridge.getScopeOf("comm").Kakao.sendLink(
+            room,
+            {
+              template_id: 81750,
+              template_args: {
+                "THU": thu,
+                "LNK": lnk,
+                "LOC": loc,
+                "TIME": time,
+                "SKY": sky,
+                "TEMP_TIT": "기온",
+                "TEMP": temp + "C",
+                "HUM_TIT": hum_tit,
+                "HUM": hum,
+                "TD_DATE" : td_date,
+                "TD_AM_PRO" : td_am_pro,
+                "TD_L_TEMP_TIT" : td_l_temp_tit,
+                "TD_L_TEMP" : td_l_temp,
+                "TD_H_TEMP_TIT" : td_h_temp_tit,
+                "TD_H_TEMP" : td_h_temp,
+                "THU_2" : thu_2,
+
+                "TD_PM_PRO" : td_pm_pro,
+                "THU_3" : thu_3,
+
+                "TM_DATE" : tm_date,
+                "TM_AM_PRO" : tm_am_pro,
+                "TM_L_TEMP_TIT" : tm_l_temp_tit,
+                "TM_L_TEMP" : tm_l_temp,
+                "TM_H_TEMP_TIT" : tm_h_temp_tit,
+                "TM_H_TEMP" : tm_h_temp,
+                "THU_4" : thu_4,
+
+                "TM_PM_PRO" : tm_pm_pro,
+                "THU_5" : thu_5,
+              },
+            },
+            "custom"
+          )
+            .then((e) => {
+            })
+            .catch((e) => {
+              Log.e("카카오링크 전송 에러 : " + e);
+              if (resp != "") {
+                replier.reply(resp);
+              }
+            });
+
+        } 
       }
     } catch (error) {
       Log.e("에러 발생.\n err : " + error);
