@@ -59,9 +59,9 @@ function responseFix(
 ) {
   let resp = "";
 
-  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room));
+  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room), "t");
+    DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room), "t");
   }
 
   if (run == "t") {
