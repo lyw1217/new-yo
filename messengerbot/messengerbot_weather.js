@@ -91,9 +91,9 @@ function responseFix(
   let data;
   let resp = "";
 
-  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room));
+  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(Bridge.getScopeOf("comm").parse(Bridge.getScopeOf("comm").room_run_db, room), "t");
+    DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room), "t");
   }
 
   if (run == "t") {
@@ -122,6 +122,9 @@ function responseFix(
             resp += "지역을 찾지 못했습니다.";
           }
         }
+        if (resp != "") {
+          replier.reply(resp);
+        }
       } else if (msg.includes("ㅇ예보")) {
         const input_fcst_keywords = msg.split(" ");
 
@@ -138,14 +141,167 @@ function responseFix(
             Log.d(error, true);
           }
         }
+        if (resp != "") {
+          replier.reply(resp);
+        }
+      } else if (msg.startsWith("ㅇ날씨 ")) {
+        if (msg == "ㅇ날씨 ") {
+          return;
+        }
+        naver_resp = org.jsoup.Jsoup.connect('http://search.naver.com/search.naver?query=' + msg.slice(4) + '+날씨').get();
+        if (!naver_resp.select("._area_panel > .title").isEmpty()) {
+          sky_sts = naver_resp.select(".weather_main > i").first().attr("class").split(" ")[1];
+          /*
+          sky_img_url = "https://ssl.pstatic.net/sstatic/keypage/outside/scui/weather_new_new/img/weather_svg_v2/icon_flat_%s.svg";
+          thu = Bridge.getScopeOf("comm").sprintf(sky_img_url, sky_sts.slice(-3));
+          */
+          thu = Bridge.getScopeOf("comm").sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          lnk = 'http://search.naver.com/search.naver?query=' + msg.slice(4) + '+날씨';
+          loc = naver_resp.select("._area_panel > .title").first().text();
+          temp = naver_resp.select(".temperature_text").first().text().slice("현재 온도".length);
+          sky = "";
+          temp_summary = naver_resp.select(".temperature_info > .summary").first().text().split(" ");
+          time = Bridge.getScopeOf("comm").sprintf("%s %s%s %s", temp_summary[0], temp_summary[1], (temp_summary[2].includes("높") ? "↑" : "↓"), temp_summary[3]);
+
+          summary = naver_resp.select(".summary_list");
+          dt = summary.select("dt").eachText();
+          dd = summary.select("dd").eachText();
+          for (let i = 0; i < dt.length && i < dd.length; i++) {
+            tmp_dt = dt[i].trim();
+            if (tmp_dt.includes("습도")) {
+              hum_tit = tmp_dt;
+              hum = dd[i];
+            } else if (tmp_dt.includes("바람")) {
+              wind_tit = tmp_dt;
+              wind = dd[i];
+            } else if (tmp_dt.includes("체감")) {
+              pro_tit = tmp_dt;
+              pro = dd[i];
+            }
+          }
+
+          resp += loc + "\n";
+          resp += time + "\n";
+          resp += "기온 : " + temp + "C" + "\n";
+          resp += Bridge.getScopeOf("comm").sprintf("%s : ", hum_tit) + hum + "\n";
+          resp += Bridge.getScopeOf("comm").sprintf("%s : ", wind_tit) + wind + "\n";
+          resp += Bridge.getScopeOf("comm").sprintf("%s : ", pro_tit) + pro + "C" + "\n";
+
+          let mise = "";
+          let cho = "";
+          let misecho = "";
+          li = naver_resp.select(".today_chart_list > li").eachText();
+          for (let i = 0; i < li.length; i++) {
+            if (li[i].startsWith("미세먼지")) {
+              mise = "미세 : " + li[i].slice(4).trim();
+            } else if (li[i].startsWith("초미세먼지")) {
+              cho = "초미세 : " + li[i].slice(5).trim();
+            }
+          }
+
+          if (mise.length > 0) {
+            resp += mise + "\n";
+            misecho += mise + ", ";
+          }
+          if (cho.length > 0) {
+            resp += cho + "\n";
+            misecho += cho;
+          }
+
+          Bridge.getScopeOf("comm").Kakao.sendLink(
+            room,
+            {
+              template_id: 81752,
+              template_args: {
+                "THU": thu,
+                "LNK": lnk,
+                "LOC": loc,
+                "TIME": time,
+                "SKY": sky,
+                "TEMP_TIT": "기온",
+                "TEMP": temp + "C",
+                "PRO_TIT": pro_tit,
+                "PRO": pro + "C",
+                "HUM_TIT": hum_tit,
+                "HUM": hum,
+                "WIND_TIT": wind_tit,
+                "WIND": wind,
+                "MISECHO": misecho,
+              },
+            },
+            "custom"
+          )
+            .then((e) => {
+            })
+            .catch((e) => {
+              Log.e("카카오링크 전송 에러 : " + e);
+              if (resp != "") {
+                replier.reply(resp);
+              }
+            });
+
+        } else {
+          jsoup_resp = org.jsoup.Jsoup.connect('https://www.google.com/search?q=' + msg.slice(4) + '+날씨').get();
+          if (!jsoup_resp.select("#wob_wc").isEmpty()) {
+            date = new Date();
+            thu = "https:" + jsoup_resp.select(".UQt4rd > img").first().attr("src") + "?" + date.getMinutes().toString() + date.getSeconds().toString();
+            lnk = 'https://www.google.com/search?q=' + msg.slice(4) + '+날씨';
+            loc = jsoup_resp.select(".wob_loc").first().text();
+            time = jsoup_resp.select(".wob_dts").first().text();
+            sky = jsoup_resp.select("#wob_dc").first().text();
+            temp = jsoup_resp.select("#wob_tm").first().text();
+            pro = jsoup_resp.select("#wob_pp").first().text();
+            hum = jsoup_resp.select("#wob_hm").first().text();
+            wind = jsoup_resp.select("#wob_ws").first().text();
+
+            resp += loc + "\n";
+            resp += time + "\n";
+            resp += "기상 : " + sky + "\n";
+            resp += "기온 : " + temp + "°C" + "\n";
+            resp += "습도 : " + hum + "\n";
+            resp += "풍속 : " + wind + "\n";
+            resp += "강수확률 : " + pro + "\n";
+
+            let misecho = "";
+
+            Bridge.getScopeOf("comm").Kakao.sendLink(
+              room,
+              {
+                template_id: 81752,
+                template_args: {
+                  "THU": thu,
+                  "LNK": lnk,
+                  "LOC": loc,
+                  "TIME": time,
+                  "SKY": sky,
+                  "TEMP_TIT": "기온",
+                  "TEMP": temp + "°C",
+                  "PRO_TIT": "강수확률",
+                  "PRO": pro,
+                  "HUM_TIT": "습도",
+                  "HUM": hum,
+                  "WIND_TIT": "풍속",
+                  "WIND": wind,
+                  "MISECHO": misecho,
+                },
+              },
+              "custom"
+            )
+              .then((e) => {
+              })
+              .catch((e) => {
+                Log.e("카카오링크 전송 에러 : " + e);
+                if (resp != "") {
+                  replier.reply(resp);
+                }
+              });
+          }
+        }
       }
     } catch (error) {
-      resp = "에러 발생.\n err : " + error;
+      Log.e("에러 발생.\n err : " + error);
+      replier.reply("날씨를 가져오지 못했어요.");
     }
-  }
-
-  if (resp != "") {
-    replier.reply(resp);
   }
 }
 
