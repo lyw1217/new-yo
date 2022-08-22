@@ -577,7 +577,7 @@ function responseFix(
               resp += "[" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question") + "] 문제가 진행 중이에요.\n";
               resp += "다른 문제를 풀고 싶으시면 문제를 시작하신 분이 `ㅇ넌센스 포기` 라고 말씀해주세요.";
             }
-            
+
           } else if (msg.slice(5).startsWith("정답") && Bridge.getScopeOf("comm").isAdmin(sender)) {
             replier.reply(sender, "정답은\n" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"));
           } else if ((msg.slice(5).startsWith("그만") || msg.slice(5).startsWith("중지") || msg.slice(5).startsWith("멈춰") || msg.slice(5).startsWith("포기"))

@@ -27,7 +27,7 @@ const onStartCompile = () => {
   apikey = Bridge.getScopeOf("comm").getApiKey();
 };
 
-/* https://cafe.naver.com/nameyee/32361 */
+/* 냥 - 조사 변경 소스 https://cafe.naver.com/nameyee/32361 */
 const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
 String.prototype.postposition = function () {
   let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
@@ -323,6 +323,7 @@ function onResume(activity) { }
 function onPause(activity) { }
 function onStop(activity) { }
 
+/* Dark Tornado - https://cafe.naver.com/nameyee/39192 */
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
   if (!packageName.startsWith("com.kakao.tal")) return;

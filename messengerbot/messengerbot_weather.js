@@ -25,7 +25,7 @@ const onStartCompile = () => {
   apikey = Bridge.getScopeOf("comm").getApiKey();
 };
 
-/* https://cafe.naver.com/nameyee/32361 */
+/* 냥 - 조사 변경 소스 https://cafe.naver.com/nameyee/32361 */
 const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
 String.prototype.postposition = function () {
   let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
@@ -388,7 +388,7 @@ function responseFix(
           tm_pm_pro = tm_li.select(".day_data > .cell_weather > .weather_inner").get(1).select(".weather_left > .rainfall").text();
           sky_sts = tm_li.select(".cell_weather > .weather_inner > i").get(1).attr("class").split(" ")[1];
           thu_5 = Bridge.getScopeOf("comm").sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
-          
+
           /*
           Log.d("td_date = " + td_date);
           Log.d("td_am_pro = " + td_am_pro);
@@ -432,27 +432,27 @@ function responseFix(
                 "TEMP": temp + "C",
                 "HUM_TIT": hum_tit,
                 "HUM": hum,
-                "TD_DATE" : td_date,
-                "TD_AM_PRO" : td_am_pro,
-                "TD_L_TEMP_TIT" : td_l_temp_tit,
-                "TD_L_TEMP" : td_l_temp,
-                "TD_H_TEMP_TIT" : td_h_temp_tit,
-                "TD_H_TEMP" : td_h_temp,
-                "THU_2" : thu_2,
+                "TD_DATE": td_date,
+                "TD_AM_PRO": td_am_pro,
+                "TD_L_TEMP_TIT": td_l_temp_tit,
+                "TD_L_TEMP": td_l_temp,
+                "TD_H_TEMP_TIT": td_h_temp_tit,
+                "TD_H_TEMP": td_h_temp,
+                "THU_2": thu_2,
 
-                "TD_PM_PRO" : td_pm_pro,
-                "THU_3" : thu_3,
+                "TD_PM_PRO": td_pm_pro,
+                "THU_3": thu_3,
 
-                "TM_DATE" : tm_date,
-                "TM_AM_PRO" : tm_am_pro,
-                "TM_L_TEMP_TIT" : tm_l_temp_tit,
-                "TM_L_TEMP" : tm_l_temp,
-                "TM_H_TEMP_TIT" : tm_h_temp_tit,
-                "TM_H_TEMP" : tm_h_temp,
-                "THU_4" : thu_4,
+                "TM_DATE": tm_date,
+                "TM_AM_PRO": tm_am_pro,
+                "TM_L_TEMP_TIT": tm_l_temp_tit,
+                "TM_L_TEMP": tm_l_temp,
+                "TM_H_TEMP_TIT": tm_h_temp_tit,
+                "TM_H_TEMP": tm_h_temp,
+                "THU_4": thu_4,
 
-                "TM_PM_PRO" : tm_pm_pro,
-                "THU_5" : thu_5,
+                "TM_PM_PRO": tm_pm_pro,
+                "THU_5": thu_5,
               },
             },
             "custom"
@@ -466,7 +466,7 @@ function responseFix(
               }
             });
 
-        } 
+        }
       }
     } catch (error) {
       Log.e("에러 발생.\n err : " + error);
@@ -488,6 +488,7 @@ function onResume(activity) { }
 function onPause(activity) { }
 function onStop(activity) { }
 
+/* Dark Tornado - https://cafe.naver.com/nameyee/39192 */
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
   if (!packageName.startsWith("com.kakao.tal")) return;

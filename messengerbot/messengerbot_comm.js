@@ -144,7 +144,7 @@ const onStartCompile = () => {
   kakaoPasswd = getKakaoPasswd();
 };
 
-/* https://cafe.naver.com/nameyee/32361 */
+/* 냥 - 조사 변경 소스 https://cafe.naver.com/nameyee/32361 */
 const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
 String.prototype.postposition = function () {
   let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
@@ -351,8 +351,7 @@ function printMusumeHelp() {
   return temp_str;
 }
 
-function pad(n, width)
-{
+function pad(n, width) {
   n = n + '';
   return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
 
@@ -363,7 +362,7 @@ function getDataTimeStr() {
     "[" +
     d.getFullYear().toString() +
     "-" +
-    pad((d.getMonth()+1).toString(), 2) +
+    pad((d.getMonth() + 1).toString(), 2) +
     "-" +
     pad(d.getDate().toString(), 2) +
     "_" +
@@ -513,6 +512,7 @@ function onResume(activity) { }
 function onPause(activity) { }
 function onStop(activity) { }
 
+/* Dark Tornado - https://cafe.naver.com/nameyee/39192 */
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
   if (!packageName.startsWith("com.kakao.tal")) return;
