@@ -133,11 +133,11 @@ function responseFix(
     DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room), "t");
   }
 
-  if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "t") {
+  if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "true") {
     if (msg.includes(DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"))) {
-      resp += sender + "님, 정답입니다.\n";
+      resp += sender + "님, 정답이에요!\n";
       resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
-      DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "f");
+      DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
     } else if (msg.includes("힌트")) {
       resp += "힌트는 " + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint");
     }
@@ -564,19 +564,25 @@ function responseFix(
 
         else if (msg.startsWith('ㅇ넌센스')) {
           if (msg == 'ㅇ넌센스') {
-            quiz = Game.setNewQuestion();
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender", sender);
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question", quiz.question);
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer", quiz.answer);
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint", quiz.hint);
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why", quiz.why);
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "t");
-            resp += quiz.question + "\n정답을 바로 이야기해보세요. 잘 모르겠으면 '힌트'";
+            if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "false") {
+              quiz = Game.setNewQuestion();
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender", sender);
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question", quiz.question);
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer", quiz.answer);
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint", quiz.hint);
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why", quiz.why);
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "true");
+              resp += quiz.question + "\n> 정답을 바로 이야기해보세요. 잘 모르겠으면 '힌트'";
+            } else {
+              resp += "[" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question") + "] 문제가 진행 중이에요.\n";
+              resp += "다른 문제를 풀고 싶으시면 문제를 시작하신 분이 `ㅇ넌센스 포기` 라고 말씀해주세요.";
+            }
+            
           } else if (msg.slice(5).startsWith("정답") && Bridge.getScopeOf("comm").isAdmin(sender)) {
             replier.reply(sender, "정답은\n" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"));
-          } else if ((msg.slice(5).startsWith("그만") || msg.slice(5).startsWith("중지") || msg.slice(5).startsWith("멈춰") || msg.slice(5).startsWith("포기")) 
-                && (Bridge.getScopeOf("comm").isAdmin(sender) || (sender == DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender")))) {
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "f");
+          } else if ((msg.slice(5).startsWith("그만") || msg.slice(5).startsWith("중지") || msg.slice(5).startsWith("멈춰") || msg.slice(5).startsWith("포기"))
+            && (Bridge.getScopeOf("comm").isAdmin(sender) || (sender == DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender")))) {
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
             resp += "아쉽네요. 정답은\n";
             resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer");
           }
