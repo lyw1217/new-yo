@@ -584,7 +584,8 @@ function responseFix(
             && (Bridge.getScopeOf("comm").isAdmin(sender) || (sender == DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender")))) {
             DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
             resp += "아쉽네요. 정답은\n";
-            resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer");
+            resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer") + "\n";
+            resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
           }
         }
       } catch (error) {
@@ -616,7 +617,7 @@ const onStartCompile = () => {
   }
 };
 
-/* https://cafe.naver.com/nameyee/32361 */
+/* 냥 - 조사 변경 소스 https://cafe.naver.com/nameyee/32361 */
 const Postposition = [['를', '을'], ['가', '이가'], ['는', '은'], ['와', '과'], ['로', '으로']];
 String.prototype.postposition = function () {
   let content = this.replace(/(.)\$(.)/g, function (str, point, position) {
@@ -639,6 +640,7 @@ String.prototype.postposition = function () {
   return content;
 };
 
+/* Dark Tornado - https://cafe.naver.com/nameyee/39192 */
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
   if (!packageName.startsWith("com.kakao.tal")) return;
@@ -668,6 +670,7 @@ function onNotificationPosted(sbn, sm) {
   }
 }
 
+/* 사로로 - 네이버 넌센스 퀴즈 모듈 https://cafe.naver.com/nameyee/37912 */
 const { NonSenseGame } = require('nonsense');
 const Game = new NonSenseGame();
 let quiz = Game.setNewQuestion();
