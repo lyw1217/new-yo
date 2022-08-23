@@ -117,6 +117,65 @@ function parseCategory(c) {
   }
 }
 
+function saveRanking(room) {
+  let str = "";
+
+  let rank_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank").split('\n');
+  let rank = {};
+  for (let i = 0; i < rank_list.length; i++) {
+    if (rank_list[i].length > 0) {
+      if (rank_list[i] in rank) {
+        rank[rank_list[i]] += 1;
+      } else {
+        rank[rank_list[i]] = 1;
+      }
+    }
+  }
+
+  str += "🏆넌센스 랭킹\n";
+  str += "-------------------\n";
+
+  /* https://stackoverflow.com/questions/25500316/sort-a-dictionary-by-value-in-javascript */
+  let items = Object.keys(rank).map(function (key) {
+    return [key, rank[key], 1];
+  });
+
+  items.sort(function (first, second) {
+    return second[1] - first[1];
+  });
+
+  for (let i = 0; i < items.length; i++) {
+    for (let j = 0; j < items.length; j++) {
+      if (items[i][1] < items[j][1]) items[i][2]++;
+    }
+  }
+
+  let medals = ["🥇", "🥈", "🥉"];
+  let medal_cnt = 0;
+  for (let i = 0; i < items.length; i++) {
+    if (i > 0) {
+
+      if (items[i - 1][2] != items[i][2]) medal_cnt += 1;
+
+      if (medal_cnt <= 2) {
+        str += medals[medal_cnt];
+      } else {
+        str += items[i][2].toString() + ".  ";
+      }
+    } else {
+      str += medals[medal_cnt];
+    }
+
+    str += items[i][0] + " : " + items[i][1] + "점\n";
+  }
+  str += "-------------------\n";
+
+  DataBase.setDataBase(
+    Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + 
+    "/rank_" + Bridge.getScopeOf("comm").toStringByFormatting(new Date(), '-')
+    , str);
+}
+
 function responseFix(
   room,
   msg,
@@ -134,6 +193,21 @@ function responseFix(
   }
 
   if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "true") {
+
+    acc = getAccuracy(msg, DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"));
+    if (acc > 90.0) {
+      resp += sender + "님, 정답이에요! (" + acc.toString() + "%)\n";
+      resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
+      DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
+
+      DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+
+      saveRanking(room);
+    } else if (msg.includes("힌트")) {
+      resp += "힌트는 " + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint");
+    }
+
+    /*    
     if (msg.includes(DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"))) {
       resp += sender + "님, 정답이에요!\n";
       resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
@@ -141,6 +215,7 @@ function responseFix(
     } else if (msg.includes("힌트")) {
       resp += "힌트는 " + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint");
     }
+    */
   }
 
   if (run == "t") {
@@ -337,6 +412,7 @@ function responseFix(
 
             try {
               data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_ojeommu_words + "&cat=" + parseCategory(input_cat_words) + apikey_qry).text();
+              //data = Utils.parse("https://ojeommu.herokuapp.com/api?query="+ input_ojeommu_words + "&cat=" + parseCategory(input_cat_words)).text();
               data = JSON.parse(data);
 
               date = new Date();
@@ -563,29 +639,125 @@ function responseFix(
         }
 
         else if (msg.startsWith('ㅇ넌센스')) {
+          if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == null) {
+            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
+          }
+
           if (msg == 'ㅇ넌센스') {
             if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "false") {
-              quiz = Game.setNewQuestion();
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender", sender);
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question", quiz.question);
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer", quiz.answer);
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint", quiz.hint);
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why", quiz.why);
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "true");
-              resp += quiz.question + "\n> 정답을 바로 이야기해보세요. 잘 모르겠으면 '힌트'";
+              if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank") == null) {
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+              }
+              try {
+                quiz = Game.setNewQuestion();
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender", sender);
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question", quiz.question);
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer", quiz.answer);
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint", quiz.hint);
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why", quiz.why);
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "true");
+                resp += quiz.question + "\n> 정답을 바로 이야기해보세요. 잘 모르겠으면 '힌트'";
+
+                if ( DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + 
+                    "/rank_" + Bridge.getScopeOf("comm").toStringByFormatting(new Date(), '-')) == null) {
+                      DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+                      Log.d("넌센스 랭킹 초기화");
+                }
+              } catch (error) {
+                Log.e(error);
+                resp += "넌센스 문제를 가져오지 못했어요.";
+              }
+
             } else {
               resp += "[" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question") + "] 문제가 진행 중이에요.\n";
               resp += "다른 문제를 풀고 싶으시면 문제를 시작하신 분이 `ㅇ넌센스 포기` 라고 말씀해주세요.";
             }
 
-          } else if (msg.slice(5).startsWith("정답") && Bridge.getScopeOf("comm").isAdmin(sender)) {
+          } 
+          else if (msg.slice(5).startsWith("정답") && Bridge.getScopeOf("comm").isAdmin(sender)) {
             replier.reply(sender, "정답은\n" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"));
-          } else if ((msg.slice(5).startsWith("그만") || msg.slice(5).startsWith("중지") || msg.slice(5).startsWith("멈춰") || msg.slice(5).startsWith("포기"))
+          } 
+          else if ((msg.slice(5).startsWith("그만") || msg.slice(5).startsWith("중지") || msg.slice(5).startsWith("멈춰") || msg.slice(5).startsWith("포기"))
             && (Bridge.getScopeOf("comm").isAdmin(sender) || (sender == DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender")))) {
             DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
             resp += "아쉽네요. 정답은\n";
             resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer") + "\n";
             resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
+          } 
+          else if (msg.slice(5).startsWith("랭킹")) {
+            if (msg.slice(8).startsWith("초기화") && Bridge.getScopeOf("comm").isAdmin(sender)) {
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+              resp += "넌센스 랭킹을 초기화했어요.";
+            } else {
+              if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank") == null) {
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+                resp += "넌센스가 한 번도 진행되지 않았어요. `ㅇ넌센스`로 시작해보세요.";
+              } else {
+
+                rank_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank").split('\n');
+                rank = {};
+                for (let i = 0; i < rank_list.length; i++) {
+                  if (rank_list[i].length > 0) {
+                    if (rank_list[i] in rank) {
+                      rank[rank_list[i]] += 1;
+                    } else {
+                      rank[rank_list[i]] = 1;
+                    }
+                  }
+                }
+
+                if (Object.keys(rank).length > 0) {
+                  date = new Date();
+
+                  resp += "🏆넌센스 랭킹\n";
+                  resp += "-------------------\n";
+
+                  /* https://stackoverflow.com/questions/25500316/sort-a-dictionary-by-value-in-javascript */
+                  items = Object.keys(rank).map(function (key) {
+                    return [key, rank[key], 1];
+                  });
+
+                  items.sort(function (first, second) {
+                    return second[1] - first[1];
+                  });
+
+                  for (let i = 0; i < items.length; i++) {
+                    for (let j = 0; j < items.length; j++) {
+                      if (items[i][1] < items[j][1]) items[i][2]++;
+                    }
+                  }
+
+                  medals = ["🥇", "🥈", "🥉"];
+                  medal_cnt = 0;
+                  for (let i = 0; i < items.length; i++) {
+                    person = "";
+                    if (i > 0) {
+
+                      if (items[i - 1][2] != items[i][2]) medal_cnt += 1;
+
+                      if (medal_cnt <= 2) {
+                        person += medals[medal_cnt];
+                      } else {
+                        person += items[i][2].toString() + ".  ";
+                      }
+                    } else {
+                      person += medals[medal_cnt];
+                    }
+                    person += items[i][0] ;
+                    person = person.padEnd(7, '　') + " : " + items[i][1] + "점\n"; 
+                    resp += person;
+                  }
+                  resp += "-------------------\n";
+                  resp += "초기화 ";
+                  if (23 - date.getHours() > 0) {
+                    resp += (23 - date.getHours()).toString() + "시간 ";
+                  }
+                  resp += (60 - date.getMinutes()).toString() + "분 전\n";
+                } else {
+                  resp += "아직 아무도 맞춘 적이 없네요. `ㅇ넌센스`로 시작해보세요.";
+                }
+              }
+            }
           }
         }
       } catch (error) {
@@ -673,4 +845,24 @@ function onNotificationPosted(sbn, sm) {
 /* 사로로 - 네이버 넌센스 퀴즈 모듈 https://cafe.naver.com/nameyee/37912 */
 const { NonSenseGame } = require('nonsense');
 const Game = new NonSenseGame();
-let quiz = Game.setNewQuestion();
+
+/* 허허허 - 타자게임 https://cafe.naver.com/nameyee/39390 */
+function getAccuracy(str1, str2) {
+  str1 = str1.split("");
+  str2 = str2.split("");
+  let dp = [];
+  dp[0] = [];
+  for (let i = 0; i < str1.length; i++) {
+    dp[i + 1] = [];
+    for (let t = 0; t < str2.length; t++) {
+      if (str1[i] == str2[t]) {
+        dp[i + 1][t + 1] = (dp[i][t] == undefined ? 0 : dp[i][t]) + 1;
+      } else {
+        dp[i + 1][t + 1] = Math.max((dp[i + 1][t] == undefined ? 0 : dp[i + 1][t]), (dp[i][t + 1] == undefined ? 0 : dp[i][t + 1]));
+      }
+    }
+  }
+  let sum = dp[str1.length][str2.length];
+  sum = sum / Math.max(str1.length, str2.length) * 100;
+  return sum.toFixed(1);
+}

@@ -377,6 +377,15 @@ function getDataTimeStr() {
   );
 }
 
+/* usage : toStringByFormatting(new Date(2021, 0, 1)); */
+function toStringByFormatting(source, delimiter) {
+  const year = source.getFullYear();
+  const month = pad(source.getMonth() + 1, 2);
+  const day = pad(source.getDate(), 2);
+
+  return [year, month, day].join(delimiter);
+}
+
 function responseFix(
   room,
   msg,
@@ -593,3 +602,5 @@ function sprintf(str) {
 
   return str.replace(/%s/g, () => args[i++]);
 }
+
+Api.reload();
