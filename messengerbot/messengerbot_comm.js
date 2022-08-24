@@ -125,6 +125,8 @@ function getKakaoPasswd() {
 }
 
 const onStartCompile = () => {
+  clearInterval(INTER);
+
   a = DataBase.getDataBase(admin_db);
   if (a == null) {
     DataBase.setDataBase(admin_db, "master\n");
@@ -173,6 +175,7 @@ function printMainHelp() {
   temp_str += "□ `ㅇ매경`\n    - 매일경제 매.세.지 조회\n";
   temp_str += "□ `ㅇ간추린`\n    - 간추린뉴스 조회\n";
   temp_str += "--------------------------------\n\n";
+
   temp_str += "🌤 날씨 🌤\n";
   temp_str += "현재 시간을 기준으로 날씨 정보를 알려줍니다.\n";
   temp_str += "□ `ㅇ날씨 (동네)`\n    - 지금 날씨 조회(네이버/구글 검색)\n";
@@ -199,6 +202,7 @@ function printMainHelp() {
   temp_str += "    전북, 광주, 전남, 대구\n";
   temp_str += "    경북, 부산, 울산, 경남\n";
   temp_str += "    제주\n\n";
+
   temp_str += "◤ 소소한 기능 ◥\n" + Lw;
   temp_str += "□ `ㅇ로또`\n    - 최근 로또 당첨번호 조회\n";
   temp_str += "    - `ㅇ로또 생성` : 랜덤 번호 생성\n";
@@ -216,18 +220,20 @@ function printMainHelp() {
   temp_str += "□ `ㅇ넌센스`\n    - 넌센스 문제!\n";
   temp_str += "    - `ㅇ넌센스 포기` : 넌센스 문제를 시작한 사람만 포기 가능\n";
   temp_str += "--------------------------------\n\n";
+
   temp_str += "🍝 오점무 카테고리 🍝\n";
-  temp_str += "□ 아무거나\t□ 한식\n";
-  temp_str += "□ 중식\t\t□ 일식\n";
-  temp_str += "□ 양식\t\t□ 분식\n";
-  temp_str += "□ 아시아음식\t□ 도시락\n";
-  temp_str += "□ 육류 / 고기\t□ 치킨\n";
-  temp_str += "□ 패스트푸드\t□ 술집\n";
+  temp_str += "□ 아무거나　　　□ 한식\n";
+  temp_str += "□ 중식　　　　　□ 일식\n";
+  temp_str += "□ 양식　　　　　□ 분식\n";
+  temp_str += "□ 아시아음식　　□ 도시락\n";
+  temp_str += "□ 육류/고기　 　□ 치킨\n";
+  temp_str += "□ 패스트푸드　　□ 술집\n";
   temp_str += "-------------------------------\n";
   temp_str += "- 사용 방법 : `ㅇ오점무 {지역}@{카테고리}`\n";
   temp_str += "- 예시 >  `ㅇ오점무 판교역@고기`\n";
   temp_str += "- 카테고리 미입력시 기본 값은 '아무거나' 입니다.\n";
   temp_str += "--------------------------------\n\n";
+
   temp_str += "🎰 무스메 사용 방법 🎲\n";
   temp_str += "□ `ㅇ무스메 초기화`\n    - 무스메 설정 초기화\n";
   temp_str += "□ `ㅇ무스메 추가 (인원1) (인원2)...`\n    - 무스메 참가 인원 추가\n";
@@ -236,8 +242,18 @@ function printMainHelp() {
   temp_str += "□ `ㅇ무스메 시작 (당첨인원 수)`\n    - 당첨인원 수 만큼 랜덤 뽑기 시작\n";
   temp_str += "-------------------------------\n";
   temp_str += "- 띄어쓰기로 구분하여 한 번에 추가 가능\n";
-  temp_str += "- 삭제는 한 명씩 가능\n";
+  temp_str += "- 삭제는 한 명씩 가능\n\n";
+
+  temp_str += "💡 넌센스 문제 맞추기 💡\n";
+  temp_str += "□ `ㅇ넌센스`\n    - 넌센스 문제 만들기\n";
+  temp_str += "□ `ㅇ넌센스 포기`\n    - 문제 포기하기 (문제를 시작한 사람과 방장만 가능)\n";
+  temp_str += "□ `ㅇ넌센스 랭킹`\n    - 랭킹 확인하기(매일 0시 초기화)\n";
+  temp_str += "□ `ㅇ넌센스 랭킹 어제`\n    - 어제 랭킹 확인하기\n";
+  temp_str += "-------------------------------\n";
+  temp_str += "정답을 맞추면 1점 획득!\n";
+  temp_str += "10% 확률로 +2점, 1% 확률로 +5점, 0.1% 확률로 +10점 획득 가능\n";
   temp_str += "--------------------------------\n\n";
+
   temp_str += "  `ㅇ그만`, `ㅇ시작`으로 로봇을 멈추거나 시작할 수 있어요.\n";
   return temp_str;
 }
@@ -604,3 +620,60 @@ function sprintf(str) {
 }
 
 Api.reload();
+
+let reload_flag = DataBase.getDataBase(comm_db + "reload");
+if (reload_flag == null) DataBase.setDataBase(comm_db + "reload", "false");
+let old_hour = -1;
+const reload_hour = 6;
+const INTER = setInterval(() => {
+  let date = new Date();
+
+  let cur_hour = date.getHours();
+  
+  if (cur_hour != old_hour) {
+    old_hour = cur_hour;
+    Log.i("getBuild() = " + Device.getBuild().toString());
+    Log.i("getAndroidVersionCode() = " + Device.getAndroidVersionCode().toString());
+    Log.i("getAndroidVersionName() = " + Device.getAndroidVersionName().toString());
+    Log.i("getPhoneBrand() = " + Device.getPhoneBrand().toString());
+    Log.i("getPhoneModel() = " + Device.getPhoneModel().toString());
+    Log.i("isCharging() = " + Device.isCharging().toString());
+    Log.i("getPlugType() = " + Device.getPlugType().toString());
+    Log.i("getBatteryLevel() = " + Device.getBatteryLevel().toString());
+    Log.i("getBatteryHealth() = " + Device.getBatteryHealth().toString());
+    Log.i("getBatteryTemperature() = " + Device.getBatteryTemperature().toString());
+    Log.i("getBatteryVoltage() = " + Device.getBatteryVoltage().toString());
+    Log.i("getBatteryStatus() = " + Device.getBatteryStatus().toString());
+    function byteCalculation(bytes) {
+      var bytes = parseInt(bytes);
+      var s = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+      var e = Math.floor(Math.log(bytes) / Math.log(1024));
+
+      if (e == "-Infinity") return "0 " + s[0];
+      else
+        return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + "" + s[e];
+    }
+
+    function getMemoryInfo() {
+      var am = Api.getContext().getSystemService(Api.getContext().ACTIVITY_SERVICE);
+      var mem = new android.app.ActivityManager.MemoryInfo();
+      am.getMemoryInfo(mem);
+
+      var useMem = Math.floor(mem.totalMem - mem.availMem);
+
+      var percent = Math.floor((useMem / mem.totalMem) * 100);
+
+      return byteCalculation(useMem) + " / " + byteCalculation(mem.totalMem) + "(" + percent + "%)";
+    }
+    Log.i(getMemoryInfo());
+  }
+
+  reload_flag = DataBase.getDataBase(comm_db + "reload");
+  if (cur_hour % reload_hour == 0 && reload_flag.includes("false")) {
+    Api.reload();
+    reload_flag = DataBase.setDataBase(comm_db + "reload", "true");
+  }
+  if ( cur_hour % reload_hour != 0 ) {
+    reload_flag = DataBase.setDataBase(comm_db + "reload", "false");
+  }
+}, 60000);

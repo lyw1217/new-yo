@@ -287,44 +287,6 @@ const INTER = setInterval(() => {
     }
   }
 
-  if (cur_hour != old_hour) {
-    old_hour = cur_hour;
-    Log.i("getBuild() = " + Device.getBuild().toString());
-    Log.i("getAndroidVersionCode() = " + Device.getAndroidVersionCode().toString());
-    Log.i("getAndroidVersionName() = " + Device.getAndroidVersionName().toString());
-    Log.i("getPhoneBrand() = " + Device.getPhoneBrand().toString());
-    Log.i("getPhoneModel() = " + Device.getPhoneModel().toString());
-    Log.i("isCharging() = " + Device.isCharging().toString());
-    Log.i("getPlugType() = " + Device.getPlugType().toString());
-    Log.i("getBatteryLevel() = " + Device.getBatteryLevel().toString());
-    Log.i("getBatteryHealth() = " + Device.getBatteryHealth().toString());
-    Log.i("getBatteryTemperature() = " + Device.getBatteryTemperature().toString());
-    Log.i("getBatteryVoltage() = " + Device.getBatteryVoltage().toString());
-    Log.i("getBatteryStatus() = " + Device.getBatteryStatus().toString());
-    function byteCalculation(bytes) {
-      var bytes = parseInt(bytes);
-      var s = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
-      var e = Math.floor(Math.log(bytes) / Math.log(1024));
-
-      if (e == "-Infinity") return "0 " + s[0];
-      else
-        return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + "" + s[e];
-    }
-
-    function getMemoryInfo() {
-      var am = Api.getContext().getSystemService(Api.getContext().ACTIVITY_SERVICE);
-      var mem = new android.app.ActivityManager.MemoryInfo();
-      am.getMemoryInfo(mem);
-
-      var useMem = Math.floor(mem.totalMem - mem.availMem);
-
-      var percent = Math.floor((useMem / mem.totalMem) * 100);
-
-      return byteCalculation(useMem) + " / " + byteCalculation(mem.totalMem) + "(" + percent + "%)";
-    }
-    Log.i(getMemoryInfo());
-  }
-
   if (cur_hour == subs_hour && cur_min == subs_min) {
     if (send_flag) {
       Log.d("구독 전송 시도");
