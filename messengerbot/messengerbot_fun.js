@@ -217,33 +217,43 @@ function responseFix(
       DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
       luck_point = Math.random();
 
-      if (luck_point > 0.0 && luck_point < 0.01) {
-        for (let i = 0; i < 9; i++) {
+      if (luck_point < 0.0001) {
+        for (let i = 0; i < 100; i++) {
           DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n1% 확률 당첨! +10점";
-      }
-      else if (luck_point > 0.0 && luck_point < 0.1) {
-        for (let i = 0; i < 4; i++) {
+        resp += "\n🎊0.01% 확률 당첨! +100점";
+      } else if (luck_point < 0.001) {
+        for (let i = 0; i < 20; i++) {
           DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n10% 확률 당첨! +5점";
-      }
-      else if (luck_point > 0.0 && luck_point < 0.2) {
-        for (let i = 0; i < 1; i++) {
+        resp += "\n🎉0.1% 확률 당첨! +20점";
+      } else if (luck_point < 0.01) {
+        for (let i = 0; i < 10; i++) {
           DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n20% 확률 당첨! +3점";
+        resp += "\n🎈1% 확률 당첨! +10점";
       }
-      else if (luck_point > 0.0 && luck_point < 0.3) {
-        for (let i = 0; i < 1; i++) {
+      else if (luck_point < 0.1) {
+        for (let i = 0; i < 5; i++) {
           DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n30% 확률 당첨! +2점";
+        resp += "\n🎁10% 확률 당첨! +5점";
       }
-
-      DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
-
+      else if (luck_point < 0.2) {
+        for (let i = 0; i < 3; i++) {
+          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+        }
+        resp += "\n✨20% 확률 당첨! +3점";
+      }
+      else if (luck_point < 0.3) {
+        for (let i = 0; i < 2; i++) {
+          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+        }
+        resp += "\n★30% 확률 당첨! +2점";
+      } else {
+        DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+      }
+      
       saveRanking(room);
     } else if (msg.includes("힌트")) {
       resp += "힌트는 " + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint");
@@ -564,23 +574,27 @@ function responseFix(
             p = [];
             for (let i = 0; i < input_p.length; i++) {
               if (input_p[i].length > 0) {
-                num += 1;
-                p.push(input_p[i]);
+                if (!p.includes(input_p[i])) {
+                  num += 1;
+                  p.push(input_p[i]);
+                }
               }
             }
 
             if (num > 0) {
               p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+              if (p_list == null) {
+                p_list = DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), '\n');
+              }
               total_num = 0;
               dup_flag = false;
-              dup_person = "";
+              dup_person = [];
               for (let i = 0; i < p_list.length; i++) {
                 if (p_list[i].length > 0) {
                   total_num += 1;
-                  if (p.indexOf(p_list[i]) > 0) {
+                  if (p.includes(p_list[i])) {
                     dup_flag = true;
-                    dup_person = p_list[i];
-                    break;
+                    dup_person.push(p_list[i]);
                   }
                 }
               }
@@ -589,7 +603,7 @@ function responseFix(
                 DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), p.join('\n') + "\n");
                 resp += "무스메 인원 추가 : " + p.join(" ") + " (+" + num.toString() + "명 / 총 " + (num + total_num).toString() + "명)";
               } else {
-                resp += "중복되는 인원(" + dup_person + ")이 있어요.";
+                resp += "중복되는 인원(" + dup_person.join(", ") + ")이 있어요.";
               }
             } else {
               resp += "`ㅇ무스메 추가 (인원1) (인원2)...` 형식에 맞게 인원을 추가해주세요.";
@@ -629,7 +643,7 @@ function responseFix(
             }
           }
 
-          else if (msg.slice(5).startsWith("시작") | msg.slice(5).startsWith("진행")) {
+          else if (msg.slice(5).startsWith("시작") | msg.slice(5).startsWith("진행") | msg.slice(5).startsWith("출발")) {
             input_num = msg.slice(8);
             n = parseInt(input_num);
             if (!isNaN(n)) {
@@ -770,7 +784,7 @@ function responseFix(
               }
             }
           }
-        } 
+        }
       } catch (error) {
         resp += "에러 발생.\n err : " + error;
       }
