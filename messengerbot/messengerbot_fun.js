@@ -40,8 +40,15 @@ const MAX_LEARN_NUM = 500;
 
 function findNotPermitWords(str) {
   const regex = /[\|\\\\\?\*\<\"\:\>\/]/g;
+  const newyo_commands = ["ㅇ뉴스", "ㅇ한경", "ㅇ매경", "ㅇ간추린", "ㅇ구독"];
+  const comm_commands = ["ㅇ시작", "ㅇ그만", "ㅇ기능", "ㅇ날씨", "ㅇ예보", "ㅇ루트"];
+  const fun_commands = ["ㅇ로또", "ㅇ가르치기", "ㅇ학습제거", "ㅇ학습리스트", "ㅇ로마", "ㅇ번역", "ㅇ오점무", "ㅇ운세", "ㅇ무스메", "ㅇ넌센스", "힌트"];
+  if (regex.test(str)) return true;
+  if (newyo_commands.includes(str) > -1) return true;
+  if (comm_commands.includes(str) > -1) return true;
+  if (fun_commands.includes(str) > -1) return true;
 
-  return regex.test(str);
+  return false;
 }
 
 function getDrwNo(r) {
@@ -159,7 +166,7 @@ function makeRankingStr(rank) {
   }
   str += "-------------------\n";
 
-  return str
+  return str;
 }
 
 function saveRanking(room) {
@@ -204,30 +211,35 @@ function responseFix(
   if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "true") {
 
     acc = getAccuracy(msg, DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"));
-    Log.d(msg + ": " + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer") + " > " + acc.toString());
     if (acc > 82.0) {
       resp += sender + "님, 정답이에요! (정확도:" + acc.toString() + "%)\n";
       resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
       DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
       luck_point = Math.random();
-      Log.d("luck_point = " + luck_point.toString());
-      if (luck_point > 0.0 && luck_point < 0.001) {
+
+      if (luck_point > 0.0 && luck_point < 0.01) {
         for (let i = 0; i < 9; i++) {
           DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n0.1% 확률 당첨! +10점";
+        resp += "\n1% 확률 당첨! +10점";
       }
-      else if (luck_point > 0.0 && luck_point < 0.01) {
+      else if (luck_point > 0.0 && luck_point < 0.1) {
         for (let i = 0; i < 4; i++) {
           DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n1% 확률 당첨! +5점";
+        resp += "\n10% 확률 당첨! +5점";
       }
-      else if (luck_point > 0.0 && luck_point < 0.1) {
+      else if (luck_point > 0.0 && luck_point < 0.2) {
         for (let i = 0; i < 1; i++) {
           DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n10% 확률 당첨! +2점";
+        resp += "\n20% 확률 당첨! +3점";
+      }
+      else if (luck_point > 0.0 && luck_point < 0.3) {
+        for (let i = 0; i < 1; i++) {
+          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+        }
+        resp += "\n30% 확률 당첨! +2점";
       }
 
       DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
@@ -758,21 +770,7 @@ function responseFix(
               }
             }
           }
-        } // n행시 깔끔버전 (카카오톡 봇 커뮤니티) | 작성자 밥풀 https://cafe.naver.com/nameyee/40306
-        else if (msg.startsWith('ㅇ엔행시 ')) {
-          let input = msg.slice(5).trim();
-          if (input.match(/^[가-힣a-z]+$/gi) === null) return replier.reply('한글 또는 영문만 입력 가능합니다.');
-          try {
-            let { output } = JSON.parse(org.jsoup.Jsoup.connect('https://demo.tunib.ai/api/text/nverse')
-              .header('Content-Type', 'application/json')
-              .requestBody(JSON.stringify({ user_input: input }))
-              .ignoreContentType(true).post().text());
-            resp += input.split('').map((e, i) => e + ': ' + output[i]).join('\n');
-          } catch (e) {
-            resp += "n행시를 만드는데 실패했어요.";
-            Log.e(e.toString());
-          }
-        }
+        } 
       } catch (error) {
         resp += "에러 발생.\n err : " + error;
       }
