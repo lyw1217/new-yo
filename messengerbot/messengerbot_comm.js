@@ -9,31 +9,34 @@ const scriptName = "comm";
  * (string) packageName
  */
 
-let db_root = "newyo/db/";
-let comm_db = db_root + "comm/";
-let apikey_db = comm_db + "apikey";
-let admin_db = db_root + "comm/admin";
-let ban_sender_db = db_root + "comm/ban_sender";
-let room_ctx_db = db_root + "room/%s/ctx";
-let room_run_db = db_root + "room/%s/run";
+const db_root = "newyo/db/";
+const comm_db = db_root + "comm/";
+const apikey_db = comm_db + "apikey";
+const admin_db = db_root + "comm/admin";
+const ban_sender_db = db_root + "comm/ban_sender";
+const room_ctx_db = db_root + "room/%s/ctx";
+const room_run_db = db_root + "room/%s/run";
 
 /* newyo */
-let subslist_db = db_root + "subslist";
+const subslist_db = db_root + "subslist";
 
 /* stock */
-let kakao_apikey_db = comm_db + "kakao_apikey";
-let kakao_email_db = comm_db + "kakao_email";
-let kakao_passwd_db = comm_db + "kakao_passwd";
+const kakao_apikey_db = comm_db + "kakao_apikey";
+const kakao_email_db = comm_db + "kakao_email";
+const kakao_passwd_db = comm_db + "kakao_passwd";
 const kakaoApiKey = getKakaoApiKey();
 const kakaoEmail = getKakaoEmail();
 const kakaoPasswd = getKakaoPasswd();
 
 /* fun */
-let fun_db = db_root + "fun/";
-let learn_db = db_root + "learn/";
-let learn_db_list = db_root + "learn_list/words";
-let musume_db = db_root + "room/%s/musume";
-let nonsense_db = db_root + "room/%s/nonsense";
+const fun_db = db_root + "fun/";
+const learn_db = db_root + "learn/";
+const learn_db_list = db_root + "learn_list/words";
+const musume_db = db_root + "room/%s/musume";
+const nonsense_db = db_root + "room/%s/nonsense";
+
+/* tunibridge */
+const room_emotion_db = db_root + "room/%s/emotion";
 
 let admin = getAdminUser();
 let ban_sender = getBanUser();
