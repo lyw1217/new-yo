@@ -57,7 +57,7 @@ function responseFix(
             replier.reply("감정 분석 실패, " + String(error));
         }
         try {
-            // n행시 깔끔버전 (카카오톡 봇 커뮤니티) | 밥풀 https://cafe.naver.com/nameyee/40306
+            // n행시 소스 (카카오톡 봇 커뮤니티) | archethic https://cafe.naver.com/nameyee/40305
             if (msg.startsWith('ㅇ엔행시 ')) {
                 if (msg.startsWith("ㅇ엔행시 ")) {
                     try {
@@ -110,7 +110,7 @@ function responseFix(
                     const dialect_json = org.jsoup.Jsoup.connect("https://demo.tunib.ai/api/text/dialect")
                         .header("Content-Type", "application/json")
                         .requestBody(
-                            JSON.stringify({ source: source, target: target, dialect_input: dialect_input.join(' ') })
+                            JSON.stringify({ source: source, target: target, user_input: dialect_input.join(' ') })
                         )
                         .ignoreContentType(true).post().text();
 
@@ -131,11 +131,11 @@ function responseFix(
                 try {
                     if (msg.slice(4).startsWith("시작")) {
                         emotion_flag = DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(room_emotion_db, room), "true");
-                        resp += "다음 대화부터 감정 분석을 시작합니다.";
-                    } else if (msg.slice(4).startsWith("종료")) {
+                        resp += "다음 대화부터 감정 예측을 시작합니다.";
+                    } else if (msg.slice(4).startsWith("종료") || msg.slice(4).startsWith("멈춤") || msg.slice(4).startsWith("정지")) {
                         emotion_flag = DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(room_emotion_db, room), "false");
-                        resp += "감정 분석을 종료했습니다.";
-                    } else if (msg.slice(4).startsWith("분석")) {
+                        resp += "감정 예측을 종료했습니다.";
+                    } else if (msg.slice(4).startsWith("분석") || msg.slice(4).startsWith("예측")) {
                         emotion_input = msg.slice(4);
 
                         resp += emotion_prediction(emotion_input);
