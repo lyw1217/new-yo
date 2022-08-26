@@ -164,8 +164,10 @@ const onStartCompile = () => {
   } else {
     ban_sender = b.split("\n");
   }
-
+  
+  apikey_qry = "";
   apikey = getApiKey();
+
   kakaoApiKey = getKakaoApiKey();
   kakaoEmail = getKakaoEmail();
   kakaoPasswd = getKakaoPasswd();

@@ -445,7 +445,8 @@ function responseFix(
 
         else if (msg.startsWith("ㅇ오점무")) {
           if (msg.substr(0, "ㅇ오점무 ".length) == "ㅇ오점무 ") {
-            const input_words = msg.substring("ㅇ오점무 ".length).trim();
+
+            input_words = msg.substring("ㅇ오점무 ".length).trim();
             if (input_words.includes("@")) {
               input_ojeommu_words = input_words.split("@")[0];
               input_cat_words = input_words.split("@")[1];
@@ -507,6 +508,54 @@ function responseFix(
               if (error != null) {
                 Log.e(error);
               }
+            }
+          }
+        }
+
+        else if (msg.startsWith("ㅇ오점네 ")) {
+          input_words = msg.slice(5).trim();
+
+          try {
+            data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_words + apikey_qry + "&target=naver").text();
+            data = JSON.parse(data);
+
+            date = new Date();
+            if (date.getHours() > 15 && date.getHours() < 21) {
+              tit = "오늘 저녁은 '" + data.hdr + "' 어떠세요?";
+            } else if (date.getHours() > 22 && date.getHours() < 8) {
+              tit = "오늘 야식은 '" + data.hdr + "' 어떠세요?";
+            } else {
+              tit = "오늘 점심은 '" + data.hdr + "' 어떠세요?";
+            }
+
+            if (Bridge.isAllowed("comm")) {
+              Bridge.getScopeOf("comm").Kakao.sendLink(
+                room,
+                {
+                  template_id: 81646,
+                  template_args: {
+                    "HDR": data.hdr,
+                    "TIT": tit,
+                    "LNK": data.lnk,
+                    "CAT": data.cat,
+                  },
+                },
+                "custom"
+              )
+                .then((e) => {
+                })
+                .catch((e) => {
+                  resp += data.hdr + "\n";
+                  resp += data.cat + "\n";
+                  resp += data.lnk;
+                  replier.reply(resp);
+                });
+            }
+
+          } catch (error) {
+            resp += "조건에 맞는 맛집을 구하지 못했어요.";
+            if (error != null) {
+              Log.e(error);
             }
           }
         }
@@ -801,23 +850,23 @@ function responseFix(
                 const book_obj = JSON.parse(book_json);
 
                 if (parseInt(book_obj['total']) > 0) {
-                  hdr = input_title ;
+                  hdr = input_title;
                   tit = [];
                   ctx = [];
                   thu = [];
                   lnk = [];
-                  for ( let i = 0; i < book_obj['items'].length; i++ ) {
+                  for (let i = 0; i < book_obj['items'].length; i++) {
                     tit.push(book_obj['items'][i]['title']);
                     ctx.push(book_obj['items'][i]['author'].replace(/\^/gi, ",") + ", " + book_obj['items'][i]['publisher']);
                     thu.push(book_obj['items'][i]['image']);
                     lnk.push(book_obj['items'][i]['link']);
                   }
-                  all_link = 'https://msearch.shopping.naver.com/book/search?query=' + input_title ;
-                  
+                  all_link = 'https://msearch.shopping.naver.com/book/search?query=' + input_title;
+
                   book_result = "";
                   book_result += "책 이름 : " + book_obj['items'][0]['title'] + "\n";
                   book_result += "저자 : " + book_obj['items'][0]['author'] + "\n";
-                  if ( book_obj['items'][0]['discount'] == null || book_obj['items'][0]['discount'] == undefined ) {
+                  if (book_obj['items'][0]['discount'] == null || book_obj['items'][0]['discount'] == undefined) {
                     book_result += "가격 : 가격 정보 없음\n";
                   } else {
                     book_result += "가격 : " + book_obj['items'][0]['discount'] + "\n";
@@ -863,7 +912,7 @@ function responseFix(
                     .catch((e) => {
                       replier.reply(book_result);
                     });
-                 
+
                 } else {
                   resp += "책 검색결과가 없어요.";
                 }
