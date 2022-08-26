@@ -34,6 +34,10 @@ const learn_db = db_root + "learn/";
 const learn_db_list = db_root + "learn_list/words";
 const musume_db = db_root + "room/%s/musume";
 const nonsense_db = db_root + "room/%s/nonsense";
+const naver_id_db = comm_db + "naver_id";
+const naver_secret_db = comm_db + "naver_secret";
+const naverId = getNaverId();
+const naverSecret = getNaverSecret();
 
 /* tunibridge */
 const room_emotion_db = db_root + "room/%s/emotion";
@@ -127,6 +131,24 @@ function getKakaoPasswd() {
   return k.replace(/[\n\t\r]/g, "");
 }
 
+function getNaverId() {
+  const k = DataBase.getDataBase(naver_id_db);
+  if (k == null) {
+    Log.e("Naver ID is Null. Check ID DB!!", true);
+    return "";
+  }
+  return k.replace(/[\n\t\r]/g, "");
+}
+
+function getNaverSecret() {
+  const k = DataBase.getDataBase(naver_secret_db);
+  if (k == null) {
+    Log.e("Naver Secret is Null. Check Secret DB!!", true);
+    return "";
+  }
+  return k.replace(/[\n\t\r]/g, "");
+}
+
 const onStartCompile = () => {
   clearInterval(INTER);
 
@@ -147,6 +169,9 @@ const onStartCompile = () => {
   kakaoApiKey = getKakaoApiKey();
   kakaoEmail = getKakaoEmail();
   kakaoPasswd = getKakaoPasswd();
+
+  naverId = getNaverId();
+  naverSecret = getNaverSecret();
 };
 
 /* 냥 - 조사 변경 소스 https://cafe.naver.com/nameyee/32361 */

@@ -9,27 +9,29 @@ const scriptName = "fun";
  * (string) packageName
  */
 
-let comm_db = Bridge.getScopeOf("comm").comm_db;
-let apikey_db = Bridge.getScopeOf("comm").apikey;
-let admin_db = Bridge.getScopeOf("comm").admin_db;
-let ban_sender_db = Bridge.getScopeOf("comm").ban_sender_db;
-let room_ctx_db = Bridge.getScopeOf("comm").room_ctx_db;
-let room_run_db = Bridge.getScopeOf("comm").room_run_db;
+const comm_db = Bridge.getScopeOf("comm").comm_db;
+const apikey_db = Bridge.getScopeOf("comm").apikey;
+const admin_db = Bridge.getScopeOf("comm").admin_db;
+const ban_sender_db = Bridge.getScopeOf("comm").ban_sender_db;
+const room_ctx_db = Bridge.getScopeOf("comm").room_ctx_db;
+const room_run_db = Bridge.getScopeOf("comm").room_run_db;
 
-let admin = Bridge.getScopeOf("comm").admin
-let ban_sender = Bridge.getScopeOf("comm").ban_sender
-let apikey = Bridge.getScopeOf("comm").apikey
-let apikey_qry = Bridge.getScopeOf("comm").apikey_qry
-let Lw = Bridge.getScopeOf("comm").Lw
+const admin = Bridge.getScopeOf("comm").admin;
+const ban_sender = Bridge.getScopeOf("comm").ban_sender;
+const apikey = Bridge.getScopeOf("comm").apikey;
+const apikey_qry = Bridge.getScopeOf("comm").apikey_qry;
+const Lw = Bridge.getScopeOf("comm").Lw;
 
-let fun_db = Bridge.getScopeOf("comm").fun_db;
-let learn_db = Bridge.getScopeOf("comm").learn_db;
-let learn_db_list = Bridge.getScopeOf("comm").learn_db_list;
-let musume_db = Bridge.getScopeOf("comm").musume_db;
-let nonsense_db = Bridge.getScopeOf("comm").nonsense_db;
-let drwNo = 0;
-let lottoUrl =
+const fun_db = Bridge.getScopeOf("comm").fun_db;
+const learn_db = Bridge.getScopeOf("comm").learn_db;
+const learn_db_list = Bridge.getScopeOf("comm").learn_db_list;
+const musume_db = Bridge.getScopeOf("comm").musume_db;
+const nonsense_db = Bridge.getScopeOf("comm").nonsense_db;
+
+const naverSearchBookUrl = "https://openapi.naver.com/v1/search/book.json";
+const lottoUrl =
   "http://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=";
+let drwNo = 0;
 let data;
 const url = "http://mumeog.site:30100";
 const roman_qry = "/romanization?query=";
@@ -253,7 +255,7 @@ function responseFix(
       } else {
         DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
       }
-      
+
       saveRanking(room);
     } else if (msg.includes("힌트")) {
       resp += "힌트는 " + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint");
@@ -783,6 +785,95 @@ function responseFix(
                 }
               }
             }
+          }
+        }
+        else if (msg.startsWith('ㅇ책 ')) {
+          try {
+            input = msg.slice(3);
+            if (input.startsWith("검색")) {
+              input_title = input.slice(2).trim();
+              if (input_title.length > 0) {
+                const book_json = org.jsoup.Jsoup.connect(naverSearchBookUrl + "?sort=date&display=5&query=" + input_title)
+                  .header("X-Naver-Client-Id", Bridge.getScopeOf("comm").naverId)
+                  .header("X-Naver-Client-Secret", Bridge.getScopeOf("comm").naverSecret)
+                  .ignoreContentType(true).get().text();
+
+                const book_obj = JSON.parse(book_json);
+
+                if (parseInt(book_obj['total']) > 0) {
+                  hdr = input_title ;
+                  tit = [];
+                  ctx = [];
+                  thu = [];
+                  lnk = [];
+                  for ( let i = 0; i < book_obj['items'].length; i++ ) {
+                    tit.push(book_obj['items'][i]['title']);
+                    ctx.push(book_obj['items'][i]['author'].replace(/\^/gi, ",") + ", " + book_obj['items'][i]['publisher']);
+                    thu.push(book_obj['items'][i]['image']);
+                    lnk.push(book_obj['items'][i]['link']);
+                  }
+                  all_link = 'https://msearch.shopping.naver.com/book/search?query=' + input_title ;
+                  
+                  book_result = "";
+                  book_result += "책 이름 : " + book_obj['items'][0]['title'] + "\n";
+                  book_result += "저자 : " + book_obj['items'][0]['author'] + "\n";
+                  if ( book_obj['items'][0]['discount'] == null || book_obj['items'][0]['discount'] == undefined ) {
+                    book_result += "가격 : 가격 정보 없음\n";
+                  } else {
+                    book_result += "가격 : " + book_obj['items'][0]['discount'] + "\n";
+                  }
+                  book_result += "출판사 : " + book_obj['items'][0]['publisher'] + "\n";
+                  book_result += "출판일 : " + book_obj['items'][0]['pubdate'] + "\n";
+                  book_result += "요약 : " + book_obj['items'][0]['description'] + "\n";
+                  book_result += "링크 : " + book_obj['items'][0]['link'] + "\n";
+
+                  Bridge.getScopeOf("comm").Kakao.sendLink(
+                    room,
+                    {
+                      template_id: 82041,
+                      template_args: {
+                        "HDR": hdr,
+                        "LNK": all_link,
+                        "THU_1": thu[0],
+                        "TIT_1": tit[0],
+                        "CTX_1": ctx[0],
+                        "LNK_1": lnk[0],
+                        "THU_2": thu[1],
+                        "TIT_2": tit[1],
+                        "CTX_2": ctx[1],
+                        "LNK_2": lnk[1],
+                        "THU_3": thu[2],
+                        "TIT_3": tit[2],
+                        "CTX_3": ctx[2],
+                        "LNK_3": lnk[2],
+                        "THU_4": thu[3],
+                        "TIT_4": tit[3],
+                        "CTX_4": ctx[3],
+                        "LNK_4": lnk[3],
+                        "THU_5": thu[4],
+                        "TIT_5": tit[4],
+                        "CTX_5": ctx[4],
+                        "LNK_5": lnk[4],
+                      },
+                    },
+                    "custom"
+                  )
+                    .then((e) => {
+                    })
+                    .catch((e) => {
+                      replier.reply(book_result);
+                    });
+                 
+                } else {
+                  resp += "책 검색결과가 없어요.";
+                }
+              } else {
+                resp += "책 이름이 올바르지 않아요.";
+              }
+            }
+          } catch (error) {
+            resp += "책 검색을 실패했어요.";
+            Log.e(error);
           }
         }
       } catch (error) {
