@@ -27,6 +27,7 @@ const learn_db = Bridge.getScopeOf("comm").learn_db;
 const learn_db_list = Bridge.getScopeOf("comm").learn_db_list;
 const musume_db = Bridge.getScopeOf("comm").musume_db;
 const nonsense_db = Bridge.getScopeOf("comm").nonsense_db;
+const mining_db = Bridge.getScopeOf("comm").mining_db;
 
 const naverSearchBookUrl = "https://openapi.naver.com/v1/search/book.json";
 const lottoUrl =
@@ -126,10 +127,8 @@ function parseCategory(c) {
   }
 }
 
-function makeRankingStr(rank) {
+function makeRankingStr(rank, opt) {
   let str = "";
-  str += "🏆넌센스 랭킹\n";
-  str += "-------------------\n";
 
   /* https://stackoverflow.com/questions/25500316/sort-a-dictionary-by-value-in-javascript */
   let items = Object.keys(rank).map(function (key) {
@@ -163,10 +162,9 @@ function makeRankingStr(rank) {
       person += medals[medal_cnt];
     }
     person += items[i][0];
-    person = person.padEnd(7, '　') + " : " + items[i][1] + "점\n";
+    person = person.padEnd(7, '　') + " : " + items[i][1] + (opt == "nonsense" ? "점" : "원") +"\n";
     str += person;
   }
-  str += "-------------------\n";
 
   return str;
 }
@@ -186,7 +184,10 @@ function saveRanking(room) {
     }
   }
 
-  str += makeRankingStr(rank);
+  str += "🏆넌센스 랭킹\n";
+  str += "-------------------\n";
+  str += makeRankingStr(rank, "nonsense");
+  str += "-------------------\n";
 
   DataBase.setDataBase(
     Bridge.getScopeOf("comm").sprintf(nonsense_db, room) +
@@ -194,15 +195,46 @@ function saveRanking(room) {
     , str);
 }
 
-function responseFix(
-  room,
-  msg,
-  sender,
-  isGroupChat,
-  replier,
-  imageDB,
-  packageName
-) {
+function miningSomething(sender) {
+  mining = Math.random();
+  tmp_str = "[" + sender + "] ";
+  if (mining < 0.001) {
+    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "1");
+    tmp_str += "💍다이아몬드💍를 캤다!";
+  }
+  else if (mining < 0.01) {
+    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "2");
+    tmp_str += "🎉사파이어🎉를 캤다!";
+  }
+  else if (mining < 0.1) {
+    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "3");
+    tmp_str += "✨루비✨를 캤다!";
+  }
+  else if (mining < 0.2) {
+    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "4");
+    tmp_str += "💵가넷을 캤다!";
+  }
+  else if (mining < 0.3) {
+    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "5");
+    tmp_str += "🪙금을 캤다!";
+  }
+  else if (mining < 0.4) {
+    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "6");
+    tmp_str += "🥄은을 캤다!";
+  }
+  else if (mining < 0.5) {
+    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "7");
+    tmp_str += "동을 캤다!";
+  }
+  else {
+    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "8");
+    tmp_str += "와. 짱돌을 얻으셨어요.";
+  }
+
+  return tmp_str;
+}
+
+function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
   let resp = "";
 
   let run = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room));
@@ -684,7 +716,7 @@ function responseFix(
                   Bridge.getScopeOf("comm").sprintf(musume_db, room),
                   filtered_list.join("\n") + "\n"
                 );
-                resp += input_p + " :  무스메에서 제외했어요.";
+                resp += input_p + " : 무스메에서 제외했어요.";
                 break;
               }
             }
@@ -823,7 +855,10 @@ function responseFix(
                 if (Object.keys(rank).length > 0) {
                   date = new Date();
 
-                  resp += makeRankingStr(rank);
+                  resp += "🏆넌센스 랭킹\n";
+                  resp += "-------------------\n";
+                  resp += makeRankingStr(rank, "nonsense");
+                  resp += "-------------------\n";
                   resp += "초기화 ";
                   if (23 - date.getHours() > 0) {
                     resp += (23 - date.getHours()).toString() + "시간 ";
@@ -923,6 +958,165 @@ function responseFix(
           } catch (error) {
             resp += "책 검색을 실패했어요.";
             Log.e(error);
+          }
+        } else if (msg.startsWith("ㅇ채굴") || msg.startsWith("ㅇㅊㄱ")) {
+
+          coin = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "money"));
+
+          if (msg == "ㅇ채굴" || msg == "ㅇㅊㄱ") {
+            if (coin != null) {
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              resp += miningSomething(sender);
+            } else {
+              resp += sender + "님은 채굴중이지 않습니다. 'ㅇ채굴 가입'으로 채굴을 시작해보세요.";
+            }
+          } else if (msg.slice(4).startsWith("가입") || msg.slice(4).startsWith("시작")) {
+            if (coin != null) {
+              resp += sender + "님은 이미 채굴 중입니다. 'ㅇ채굴(ㅊㄱ)' 로 채굴해보세요.";
+            } else {
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "money"), "0");
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "\n");
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              resp += sender + "님, 이제 'ㅇ채굴(ㅊㄱ)' 로 채굴해보세요.";
+              resp += "\n주의!" + "\n너무 많이, 빠르게 채굴하면 카톡 정지당할 수 있어요.";
+            }
+          }
+          else if (msg.slice(4).startsWith("확인") || msg.slice(4).startsWith("현황") || msg.slice(4).startsWith("근황") || msg.slice(4).startsWith("기록")) {
+            if (coin != null) {
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+
+              gemstones = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"));
+              diamond = (gemstones.match(/1/g) || []).length;
+              sapphire = (gemstones.match(/2/g) || []).length;
+              ruby = (gemstones.match(/3/g) || []).length;
+              garnet = (gemstones.match(/4/g) || []).length;
+              gold = (gemstones.match(/5/g) || []).length;
+              silver = (gemstones.match(/6/g) || []).length;
+              bronze = (gemstones.match(/7/g) || []).length;
+              stone = (gemstones.match(/8/g) || []).length;
+
+              resp += sender + "님의 돈 : " + coin + "원" + Lw + "\n";
+              resp += "------------------------------\n";
+              resp += "다이아몬드\t: " + diamond + "개\n";
+              resp += "사파이어\t: " + sapphire + "개\n";
+              resp += "루비\t\t: " + ruby + "개\n";
+              resp += "가넷\t\t: " + garnet + "개\n";
+              resp += "금\t\t: " + gold + "개\n";
+              resp += "은\t\t: " + silver + "개\n";
+              resp += "동\t\t: " + bronze + "개\n";
+              resp += "짱돌\t\t: " + stone + "개\n";
+              resp += "------------------------------\n";
+              resp += "'ㅇ채굴 판매' 로 원석들을 팔아 돈을 모아보세요.";
+            } else {
+              resp += sender + "님은 채굴중이지 않습니다. 'ㅇ채굴 가입'으로 채굴을 시작해보세요.";
+            }
+          }
+          else if (msg.slice(4).startsWith("판매") || msg.slice(4).startsWith("팔기")) {
+            if (coin != null) {
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+
+              gemstones = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"));
+              diamond = (gemstones.match(/1/g) || []).length;
+              sapphire = (gemstones.match(/2/g) || []).length;
+              ruby = (gemstones.match(/3/g) || []).length;
+              garnet = (gemstones.match(/4/g) || []).length;
+              gold = (gemstones.match(/5/g) || []).length;
+              silver = (gemstones.match(/6/g) || []).length;
+              bronze = (gemstones.match(/7/g) || []).length;
+              stone = (gemstones.match(/8/g) || []).length;
+
+              sales =
+                parseInt(diamond) * 100000 +
+                parseInt(sapphire) * 7000 +
+                parseInt(ruby) * 5000 +
+                parseInt(garnet) * 3000 +
+                parseInt(gold) * 1000 +
+                parseInt(silver) * 300 +
+                parseInt(bronze) * 200 +
+                parseInt(stone) * 100;
+              if (sales > 0) {
+                coin = (parseInt(coin) + sales).toString();
+                resp += "원석들을 전부 판매해서 " + sales.toString() + "원을 벌었어요.\n";
+                resp += sender + "님의 돈 : " + coin + "원\n" + Lw;
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "money"), coin);
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "\n");
+
+                resp += "판매 목록\n";
+                resp += "------------------------------\n";
+                resp += "다이아몬드\t: " + diamond + "개, " + parseInt(diamond) * 100000 + "원\n";
+                resp += "사파이어\t: " + sapphire + "개, " + parseInt(sapphire) * 7000 + "원\n";
+                resp += "루비\t\t: " + ruby + "개, " + parseInt(ruby) * 5000 + "원\n";
+                resp += "가넷\t\t: " + garnet + "개, " + parseInt(garnet) * 3000 + "원\n";
+                resp += "금\t\t: " + gold + "개, " + parseInt(gold) * 1000 + "원\n";
+                resp += "은\t\t: " + silver + "개, " + parseInt(silver) * 300 + "원\n";
+                resp += "동\t\t: " + bronze + "개, " + parseInt(bronze) * 200 + "원\n";
+                resp += "짱돌\t\t: " + stone + "개, " + parseInt(stone) * 100 + "원\n";
+              } else {
+                resp += "원석이 없어요. 'ㅇ채굴(ㅊㄱ)'로 채굴해보세요.";
+              }
+
+            } else {
+              resp += sender + "님은 채굴중이지 않습니다. 'ㅇ채굴 가입'으로 채굴을 시작해보세요.";
+            }
+          } else if (msg.slice(4).startsWith("초기화") || msg.slice(4).startsWith("삭제")) {
+            if (coin != null) {
+              del_flag = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"));
+              if (del_flag.includes("false")) {
+                del_flag = DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "true");
+                resp += "돈을 초기화하려면 한 번 더 'ㅇ채굴 초기화' 하세요.";
+              } else if (del_flag.includes("true")) {
+                resp += sender + "님의 채굴 기록을 초기화합니다.";
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "money"), "0");
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "\n");
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              }
+            }
+          }
+          else if (msg.slice(4).startsWith("랭킹")) {
+            if (msg.slice(7).startsWith("등록")) {
+              if (!DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, "room/" + room, "rank").includes(sender))) {
+                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, "room/" + room, "rank"), sender + "\n");
+                resp += "랭킹에 등록했습니다. 'ㅇ채굴 랭킹'으로 확인해보세요.";
+              } else {
+                resp += "이미 랭킹에 등록되어있어요.";
+              }
+            }
+            else { 
+              if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, "room/" + room, "rank")) == null) {
+                resp += "랭킹에 아무도 등록하지 않았어요. 'ㅇ채굴 랭킹 등록'으로 등록해보세요.";
+              } else {
+                rank_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, "room/" + room, "rank")).split('\n');
+                
+                rank = {};
+                for (let i = 0; i < rank_list.length; i++) {
+                  if (rank_list[i].length > 0) {
+                    m = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, rank_list[i], "money"));
+                    if (m != null) {
+                      rank[rank_list[i]] = m;
+                    }
+                  }
+                }
+
+                if (Object.keys(rank).length > 0) {
+                  date = new Date();
+
+                  resp += "🏆채굴 랭킹\n";
+                  resp += "-------------------------\n";
+                  resp += makeRankingStr(rank, "mining");
+                  resp += "-------------------------\n";
+                } else {
+                  resp += "아직 아무도 채굴하지 않았네요. `ㅇ채굴(ㅊㄱ)`로 채굴해보세요.";
+                }
+              }
+            }
+          }
+          else {
+            if (coin != null) {
+              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              resp += miningSomething(sender);
+            } else {
+              resp += sender + "님은 채굴중이지 않습니다. 'ㅇ채굴 가입'으로 채굴을 시작해보세요.";
+            }
           }
         }
       } catch (error) {

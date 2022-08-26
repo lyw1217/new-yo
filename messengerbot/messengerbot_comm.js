@@ -38,6 +38,7 @@ const naver_id_db = comm_db + "naver_id";
 const naver_secret_db = comm_db + "naver_secret";
 const naverId = getNaverId();
 const naverSecret = getNaverSecret();
+const mining_db = db_root + "mining/%s/%s";
 
 /* tunibridge */
 const room_emotion_db = db_root + "room/%s/emotion";
