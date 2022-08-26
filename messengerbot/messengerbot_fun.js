@@ -21,13 +21,19 @@ const ban_sender = Bridge.getScopeOf("comm").ban_sender;
 const apikey = Bridge.getScopeOf("comm").apikey;
 const apikey_qry = Bridge.getScopeOf("comm").apikey_qry;
 const Lw = Bridge.getScopeOf("comm").Lw;
-
+const naverId = Bridge.getScopeOf("comm").naverId;
+const naverSecret = Bridge.getScopeOf("comm").naverSecret;
 const fun_db = Bridge.getScopeOf("comm").fun_db;
 const learn_db = Bridge.getScopeOf("comm").learn_db;
 const learn_db_list = Bridge.getScopeOf("comm").learn_db_list;
 const musume_db = Bridge.getScopeOf("comm").musume_db;
 const nonsense_db = Bridge.getScopeOf("comm").nonsense_db;
 const mining_db = Bridge.getScopeOf("comm").mining_db;
+
+/* functions */
+const isAdmin = Bridge.getScopeOf("comm").isAdmin;
+const sprintf = Bridge.getScopeOf("comm").sprintf;
+const toStringByFormatting = Bridge.getScopeOf("comm").toStringByFormatting;
 
 const naverSearchBookUrl = "https://openapi.naver.com/v1/search/book.json";
 const lottoUrl =
@@ -172,7 +178,7 @@ function makeRankingStr(rank, opt) {
 function saveRanking(room) {
   let str = "";
 
-  let rank_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank").split('\n');
+  let rank_list = DataBase.getDataBase(sprintf(nonsense_db, room) + "/rank").split('\n');
   let rank = {};
   for (let i = 0; i < rank_list.length; i++) {
     if (rank_list[i].length > 0) {
@@ -190,8 +196,8 @@ function saveRanking(room) {
   str += "-------------------\n";
 
   DataBase.setDataBase(
-    Bridge.getScopeOf("comm").sprintf(nonsense_db, room) +
-    "/rank_" + Bridge.getScopeOf("comm").toStringByFormatting(new Date(), '-')
+    sprintf(nonsense_db, room) +
+    "/rank_" + toStringByFormatting(new Date(), '-')
     , str);
 }
 
@@ -199,35 +205,35 @@ function miningSomething(sender) {
   mining = Math.random();
   tmp_str = "[" + sender + "] ";
   if (mining < 0.001) {
-    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "1");
+    DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "1");
     tmp_str += "💍다이아몬드💍를 캤다!";
   }
   else if (mining < 0.01) {
-    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "2");
+    DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "2");
     tmp_str += "🎉사파이어🎉를 캤다!";
   }
   else if (mining < 0.1) {
-    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "3");
+    DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "3");
     tmp_str += "✨루비✨를 캤다!";
   }
   else if (mining < 0.2) {
-    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "4");
+    DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "4");
     tmp_str += "💵가넷을 캤다!";
   }
   else if (mining < 0.3) {
-    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "5");
+    DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "5");
     tmp_str += "🪙금을 캤다!";
   }
   else if (mining < 0.4) {
-    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "6");
+    DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "6");
     tmp_str += "🥄은을 캤다!";
   }
   else if (mining < 0.5) {
-    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "7");
+    DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "7");
     tmp_str += "동을 캤다!";
   }
   else {
-    DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "8");
+    DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "8");
     tmp_str += "와. 짱돌을 얻으셨어요.";
   }
 
@@ -237,60 +243,60 @@ function miningSomething(sender) {
 function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
   let resp = "";
 
-  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room));
+  let run = DataBase.getDataBase(sprintf(room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room), "t");
+    DataBase.setDataBase(sprintf(room_run_db, room), "t");
   }
 
-  if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "true") {
+  if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/flag") == "true") {
 
-    acc = getAccuracy(msg, DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"));
+    acc = getAccuracy(msg, DataBase.getDataBase(sprintf(nonsense_db, room) + "/answer"));
     if (acc > 82.0) {
       resp += sender + "님, 정답이에요! (정확도:" + acc.toString() + "%)\n";
-      resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
-      DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
+      resp += DataBase.getDataBase(sprintf(nonsense_db, room) + "/why");
+      DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "false");
       luck_point = Math.random();
 
       if (luck_point < 0.0001) {
         for (let i = 0; i < 100; i++) {
-          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+          DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
         resp += "\n🎊0.01% 확률 당첨! +100점";
       } else if (luck_point < 0.001) {
         for (let i = 0; i < 20; i++) {
-          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+          DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
         resp += "\n🎉0.1% 확률 당첨! +20점";
       } else if (luck_point < 0.01) {
         for (let i = 0; i < 10; i++) {
-          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+          DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
         resp += "\n🎈1% 확률 당첨! +10점";
       }
       else if (luck_point < 0.1) {
         for (let i = 0; i < 5; i++) {
-          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+          DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
         resp += "\n🎁10% 확률 당첨! +5점";
       }
       else if (luck_point < 0.2) {
         for (let i = 0; i < 3; i++) {
-          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+          DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
         resp += "\n✨20% 확률 당첨! +3점";
       }
       else if (luck_point < 0.3) {
         for (let i = 0; i < 2; i++) {
-          DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+          DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
         resp += "\n★30% 확률 당첨! +2점";
       } else {
-        DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", sender + "\n");
+        DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
       }
 
       saveRanking(room);
     } else if (msg.includes("힌트")) {
-      resp += "힌트는 " + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint");
+      resp += "힌트는 " + DataBase.getDataBase(sprintf(nonsense_db, room) + "/hint");
     }
   }
 
@@ -427,7 +433,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               resp += input_del_words + " 단어는 학습하지 않았어요.";
             }
           }
-        } else if (msg.startsWith("ㅇ학습리스트") && Bridge.getScopeOf("comm").isAdmin(sender)) {
+        } else if (msg.startsWith("ㅇ학습리스트") && isAdmin(sender)) {
           if (msg.includes("제거")) {
             const del_count = parseInt(
               msg.substring("ㅇ학습리스트 제거 ".length).trim()
@@ -627,18 +633,18 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         }
 
         else if (msg.startsWith('ㅇ무스메 ')) {
-          if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)) == null) {
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), "");
+          if (DataBase.getDataBase(sprintf(musume_db, room)) == null) {
+            DataBase.setDataBase(sprintf(musume_db, room), "");
           }
 
           if (msg.slice(5).startsWith("초기화") || msg.slice(5).startsWith("리셋")) {
             resp += "무스메를 초기화합니다.";
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), "");
+            DataBase.setDataBase(sprintf(musume_db, room), "");
 
           }
 
           else if (msg.slice(5).startsWith("확인") || msg.slice(5).startsWith("인원") || msg.slice(5).startsWith("현황")) {
-            p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+            p_list = DataBase.getDataBase(sprintf(musume_db, room)).split('\n');
             resp += "[무스메 참가 인원]\n";
             num = 0;
             for (let i = 0; i < p_list.length; i++) {
@@ -665,9 +671,9 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
             }
 
             if (num > 0) {
-              p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+              p_list = DataBase.getDataBase(sprintf(musume_db, room)).split('\n');
               if (p_list == null) {
-                p_list = DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), '\n');
+                p_list = DataBase.setDataBase(sprintf(musume_db, room), '\n');
               }
               total_num = 0;
               dup_flag = false;
@@ -683,7 +689,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               }
 
               if (!dup_flag) {
-                DataBase.appendDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room), p.join('\n') + "\n");
+                DataBase.appendDataBase(sprintf(musume_db, room), p.join('\n') + "\n");
                 resp += "무스메 인원 추가 : " + p.join(" ") + " (+" + num.toString() + "명 / 총 " + (num + total_num).toString() + "명)";
               } else {
                 resp += "중복되는 인원(" + dup_person.join(", ") + ")이 있어요.";
@@ -694,7 +700,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
           }
 
           else if (msg.slice(5).startsWith("삭제") | msg.slice(5).startsWith("제거") | msg.slice(5).startsWith("제외")) {
-            p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+            p_list = DataBase.getDataBase(sprintf(musume_db, room)).split('\n');
             total_num = 0;
             p = [];
             for (let i = 0; i < p_list.length; i++) {
@@ -713,7 +719,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
                   (element) => element !== input_p
                 );
                 DataBase.setDataBase(
-                  Bridge.getScopeOf("comm").sprintf(musume_db, room),
+                  sprintf(musume_db, room),
                   filtered_list.join("\n") + "\n"
                 );
                 resp += input_p + " : 무스메에서 제외했어요.";
@@ -730,7 +736,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
             input_num = msg.slice(8);
             n = parseInt(input_num);
             if (!isNaN(n)) {
-              p_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(musume_db, room)).split('\n');
+              p_list = DataBase.getDataBase(sprintf(musume_db, room)).split('\n');
               total_num = 0;
               p = [];
               for (let i = 0; i < p_list.length; i++) {
@@ -768,28 +774,28 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
         }
 
         else if (msg.startsWith('ㅇ넌센스')) {
-          if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == null) {
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
+          if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/flag") == null) {
+            DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "false");
           }
 
           if (msg == 'ㅇ넌센스') {
-            if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag") == "false") {
-              if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank") == null) {
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+            if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/flag") == "false") {
+              if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/rank") == null) {
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
               }
               try {
                 quiz = Game.setNewQuestion();
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender", sender);
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question", quiz.question);
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer", quiz.answer);
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/hint", quiz.hint);
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why", quiz.why);
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "true");
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/sender", sender);
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/question", quiz.question);
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/answer", quiz.answer);
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/hint", quiz.hint);
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/why", quiz.why);
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "true");
                 resp += quiz.question + "\n> 정답을 바로 이야기해보세요. 잘 모르겠으면 '힌트'";
 
-                if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) +
-                  "/rank_" + Bridge.getScopeOf("comm").toStringByFormatting(new Date(), '-')) == null) {
-                  DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+                if (DataBase.getDataBase(sprintf(nonsense_db, room) +
+                  "/rank_" + toStringByFormatting(new Date(), '-')) == null) {
+                  DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
                   Log.d("넌센스 랭킹 초기화");
                 }
               } catch (error) {
@@ -798,30 +804,30 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               }
 
             } else {
-              resp += "[" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/question") + "] 문제가 진행 중이에요.\n";
+              resp += "[" + DataBase.getDataBase(sprintf(nonsense_db, room) + "/question") + "] 문제가 진행 중이에요.\n";
               resp += "다른 문제를 풀고 싶으시면 문제를 시작하신 분이 `ㅇ넌센스 포기` 라고 말씀해주세요.";
             }
 
           }
-          else if (msg.slice(5).startsWith("정답") && Bridge.getScopeOf("comm").isAdmin(sender)) {
-            replier.reply(sender, "정답은\n" + DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer"));
+          else if (msg.slice(5).startsWith("정답") && isAdmin(sender)) {
+            replier.reply(sender, "정답은\n" + DataBase.getDataBase(sprintf(nonsense_db, room) + "/answer"));
           }
           else if ((msg.slice(5).startsWith("그만") || msg.slice(5).startsWith("중지") || msg.slice(5).startsWith("멈춰") || msg.slice(5).startsWith("포기"))
-            && (Bridge.getScopeOf("comm").isAdmin(sender) || (sender == DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/sender")))) {
-            DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/flag", "false");
+            && (isAdmin(sender) || (sender == DataBase.getDataBase(sprintf(nonsense_db, room) + "/sender")))) {
+            DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "false");
             resp += "아쉽네요. 정답은\n";
-            resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/answer") + "\n";
-            resp += DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/why");
+            resp += DataBase.getDataBase(sprintf(nonsense_db, room) + "/answer") + "\n";
+            resp += DataBase.getDataBase(sprintf(nonsense_db, room) + "/why");
           }
           else if (msg.slice(5).startsWith("랭킹")) {
-            if (msg.slice(8).startsWith("초기화") && Bridge.getScopeOf("comm").isAdmin(sender)) {
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+            if (msg.slice(8).startsWith("초기화") && isAdmin(sender)) {
+              DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
               resp += "넌센스 랭킹을 초기화했어요.";
             }
             else if (msg.slice(8).startsWith("어제")) {
               tmp_str = DataBase.getDataBase(
-                Bridge.getScopeOf("comm").sprintf(nonsense_db, room) +
-                "/rank_" + Bridge.getScopeOf("comm").toStringByFormatting(new Date(new Date().setDate(new Date().getDate() - 1)), '-'));
+                sprintf(nonsense_db, room) +
+                "/rank_" + toStringByFormatting(new Date(new Date().setDate(new Date().getDate() - 1)), '-'));
               if (tmp_str != null) {
                 resp += tmp_str;
               } else {
@@ -829,18 +835,18 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               }
             }
             else {
-              if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) +
-                "/rank_" + Bridge.getScopeOf("comm").toStringByFormatting(new Date(), '-')) == null) {
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+              if (DataBase.getDataBase(sprintf(nonsense_db, room) +
+                "/rank_" + toStringByFormatting(new Date(), '-')) == null) {
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
                 Log.d("넌센스 랭킹 초기화");
               }
 
-              if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank") == null) {
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank", "\n");
+              if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/rank") == null) {
+                DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
                 resp += "넌센스가 한 번도 진행되지 않았어요. `ㅇ넌센스`로 시작해보세요.";
               } else {
 
-                rank_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(nonsense_db, room) + "/rank").split('\n');
+                rank_list = DataBase.getDataBase(sprintf(nonsense_db, room) + "/rank").split('\n');
                 rank = {};
                 for (let i = 0; i < rank_list.length; i++) {
                   if (rank_list[i].length > 0) {
@@ -878,8 +884,8 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               input_title = input.slice(2).trim();
               if (input_title.length > 0) {
                 const book_json = org.jsoup.Jsoup.connect(naverSearchBookUrl + "?sort=date&display=5&query=" + input_title)
-                  .header("X-Naver-Client-Id", Bridge.getScopeOf("comm").naverId)
-                  .header("X-Naver-Client-Secret", Bridge.getScopeOf("comm").naverSecret)
+                  .header("X-Naver-Client-Id", naverId)
+                  .header("X-Naver-Client-Secret", naverSecret)
                   .ignoreContentType(true).get().text();
 
                 const book_obj = JSON.parse(book_json);
@@ -961,11 +967,11 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
           }
         } else if (msg.startsWith("ㅇ채굴") || msg.startsWith("ㅇㅊㄱ")) {
 
-          coin = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "money"));
+          coin = DataBase.getDataBase(sprintf(mining_db, sender, "money"));
 
           if (msg == "ㅇ채굴" || msg == "ㅇㅊㄱ") {
             if (coin != null) {
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "false");
               resp += miningSomething(sender);
             } else {
               resp += sender + "님은 채굴중이지 않습니다. 'ㅇ채굴 가입'으로 채굴을 시작해보세요.";
@@ -974,18 +980,18 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
             if (coin != null) {
               resp += sender + "님은 이미 채굴 중입니다. 'ㅇ채굴(ㅊㄱ)' 로 채굴해보세요.";
             } else {
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "money"), "0");
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "\n");
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              DataBase.setDataBase(sprintf(mining_db, sender, "money"), "0");
+              DataBase.setDataBase(sprintf(mining_db, sender, "gemstones"), "\n");
+              DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "false");
               resp += sender + "님, 이제 'ㅇ채굴(ㅊㄱ)' 로 채굴해보세요.";
               resp += "\n주의!" + "\n너무 많이, 빠르게 채굴하면 카톡 정지당할 수 있어요.";
             }
           }
           else if (msg.slice(4).startsWith("확인") || msg.slice(4).startsWith("현황") || msg.slice(4).startsWith("근황") || msg.slice(4).startsWith("기록")) {
             if (coin != null) {
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "false");
 
-              gemstones = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"));
+              gemstones = DataBase.getDataBase(sprintf(mining_db, sender, "gemstones"));
               diamond = (gemstones.match(/1/g) || []).length;
               sapphire = (gemstones.match(/2/g) || []).length;
               ruby = (gemstones.match(/3/g) || []).length;
@@ -1013,9 +1019,9 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
           }
           else if (msg.slice(4).startsWith("판매") || msg.slice(4).startsWith("팔기")) {
             if (coin != null) {
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "false");
 
-              gemstones = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"));
+              gemstones = DataBase.getDataBase(sprintf(mining_db, sender, "gemstones"));
               diamond = (gemstones.match(/1/g) || []).length;
               sapphire = (gemstones.match(/2/g) || []).length;
               ruby = (gemstones.match(/3/g) || []).length;
@@ -1038,8 +1044,8 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
                 coin = (parseInt(coin) + sales).toString();
                 resp += "원석들을 전부 판매해서 " + sales.toString() + "원을 벌었어요.\n";
                 resp += sender + "님의 돈 : " + coin + "원\n" + Lw;
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "money"), coin);
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "\n");
+                DataBase.setDataBase(sprintf(mining_db, sender, "money"), coin);
+                DataBase.setDataBase(sprintf(mining_db, sender, "gemstones"), "\n");
 
                 resp += "판매 목록\n";
                 resp += "------------------------------\n";
@@ -1060,37 +1066,37 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
             }
           } else if (msg.slice(4).startsWith("초기화") || msg.slice(4).startsWith("삭제")) {
             if (coin != null) {
-              del_flag = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"));
+              del_flag = DataBase.getDataBase(sprintf(mining_db, sender, "del_flag"));
               if (del_flag.includes("false")) {
-                del_flag = DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "true");
+                del_flag = DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "true");
                 resp += "돈을 초기화하려면 한 번 더 'ㅇ채굴 초기화' 하세요.";
               } else if (del_flag.includes("true")) {
                 resp += sender + "님의 채굴 기록을 초기화합니다.";
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "money"), "0");
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "gemstones"), "\n");
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+                DataBase.setDataBase(sprintf(mining_db, sender, "money"), "0");
+                DataBase.setDataBase(sprintf(mining_db, sender, "gemstones"), "\n");
+                DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "false");
               }
             }
           }
           else if (msg.slice(4).startsWith("랭킹")) {
             if (msg.slice(7).startsWith("등록")) {
-              if (!DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, "room/" + room, "rank").includes(sender))) {
-                DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, "room/" + room, "rank"), sender + "\n");
+              if (!DataBase.getDataBase(sprintf(mining_db, "room/" + room, "rank").includes(sender))) {
+                DataBase.setDataBase(sprintf(mining_db, "room/" + room, "rank"), sender + "\n");
                 resp += "랭킹에 등록했습니다. 'ㅇ채굴 랭킹'으로 확인해보세요.";
               } else {
                 resp += "이미 랭킹에 등록되어있어요.";
               }
             }
             else { 
-              if (DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, "room/" + room, "rank")) == null) {
+              if (DataBase.getDataBase(sprintf(mining_db, "room/" + room, "rank")) == null) {
                 resp += "랭킹에 아무도 등록하지 않았어요. 'ㅇ채굴 랭킹 등록'으로 등록해보세요.";
               } else {
-                rank_list = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, "room/" + room, "rank")).split('\n');
+                rank_list = DataBase.getDataBase(sprintf(mining_db, "room/" + room, "rank")).split('\n');
                 
                 rank = {};
                 for (let i = 0; i < rank_list.length; i++) {
                   if (rank_list[i].length > 0) {
-                    m = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, rank_list[i], "money"));
+                    m = DataBase.getDataBase(sprintf(mining_db, rank_list[i], "money"));
                     if (m != null) {
                       rank[rank_list[i]] = m;
                     }
@@ -1112,7 +1118,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
           }
           else {
             if (coin != null) {
-              DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(mining_db, sender, "del_flag"), "false");
+              DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "false");
               resp += miningSomething(sender);
             } else {
               resp += sender + "님은 채굴중이지 않습니다. 'ㅇ채굴 가입'으로 채굴을 시작해보세요.";

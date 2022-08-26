@@ -16,6 +16,8 @@ const ban_sender_db = Bridge.getScopeOf("comm").ban_sender_db;
 const room_ctx_db = Bridge.getScopeOf("comm").room_ctx_db;
 const room_run_db = Bridge.getScopeOf("comm").room_run_db;
 
+const sprintf = Bridge.getScopeOf("comm").sprintf;
+
 const admin = Bridge.getScopeOf("comm").admin;
 const ban_sender = Bridge.getScopeOf("comm").ban_sender;
 const apikey = Bridge.getScopeOf("comm").apikey;
@@ -38,15 +40,15 @@ function responseFix(
 ) {
     let resp = "";
 
-    let run = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room));
+    let run = DataBase.getDataBase(sprintf(room_run_db, room));
     if (run == null) {
-        DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room), "t");
+        DataBase.setDataBase(sprintf(room_run_db, room), "t");
     }
 
     if (run == "t") {
 
         try {
-            emotion_flag = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_emotion_db, room));
+            emotion_flag = DataBase.getDataBase(sprintf(room_emotion_db, room));
             if (emotion_flag == "true") {
                 if (!msg.startsWith("ㅇ")) {
                     replier.reply(emotion_prediction(msg));
@@ -130,10 +132,10 @@ function responseFix(
             else if (msg.startsWith('ㅇ감정 ')) {
                 try {
                     if (msg.slice(4).startsWith("시작")) {
-                        emotion_flag = DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(room_emotion_db, room), "true");
+                        emotion_flag = DataBase.setDataBase(sprintf(room_emotion_db, room), "true");
                         resp += "다음 대화부터 감정 예측을 시작합니다.";
                     } else if (msg.slice(4).startsWith("종료") || msg.slice(4).startsWith("멈춤") || msg.slice(4).startsWith("정지")) {
-                        emotion_flag = DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(room_emotion_db, room), "false");
+                        emotion_flag = DataBase.setDataBase(sprintf(room_emotion_db, room), "false");
                         resp += "감정 예측을 종료했습니다.";
                     } else if (msg.slice(4).startsWith("분석") || msg.slice(4).startsWith("예측")) {
                         emotion_input = msg.slice(4);

@@ -17,6 +17,8 @@ let room_ctx_db = Bridge.getScopeOf("comm").room_ctx_db;
 let room_run_db = Bridge.getScopeOf("comm").room_run_db;
 let subslist_db = Bridge.getScopeOf("comm").subslist_db;
 
+const sprintf = Bridge.getScopeOf("comm").sprintf;
+
 const subs_hour = 8;
 const subs_min = 30;
 let url = "http://mumeog.site:30100";
@@ -97,9 +99,9 @@ function responseFix(
 ) {
   let data;
   let resp = "";
-  let run = DataBase.getDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room));
+  let run = DataBase.getDataBase(sprintf(room_run_db, room));
   if (run == null) {
-    DataBase.setDataBase(Bridge.getScopeOf("comm").sprintf(Bridge.getScopeOf("comm").room_run_db, room), "t");
+    DataBase.setDataBase(sprintf(room_run_db, room), "t");
   }
 
   if (run == "t") {
