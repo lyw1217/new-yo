@@ -193,7 +193,7 @@ function saveRanking(room) {
   str += "🏆넌센스 랭킹\n";
   str += "-------------------\n";
   str += makeRankingStr(rank, "nonsense");
-  str += "-------------------\n";
+  str += "-------------------";
 
   DataBase.setDataBase(
     sprintf(nonsense_db, room) +
@@ -988,7 +988,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               resp += "\n주의!" + "\n너무 많이, 빠르게 채굴하면 카톡 정지당할 수 있어요.";
             }
           }
-          else if (msg.slice(4).startsWith("확인") || msg.slice(4).startsWith("현황") || msg.slice(4).startsWith("근황") || msg.slice(4).startsWith("기록")) {
+          else if (msg.slice(4).startsWith("확인") || msg.slice(4).startsWith("현황") || msg.slice(4).startsWith("기록")) {
             if (coin != null) {
               DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "false");
 
@@ -1070,7 +1070,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               del_flag = DataBase.getDataBase(sprintf(mining_db, sender, "del_flag"));
               if (del_flag.includes("false")) {
                 del_flag = DataBase.setDataBase(sprintf(mining_db, sender, "del_flag"), "true");
-                resp += "돈을 초기화하려면 한 번 더 'ㅇ채굴 초기화' 하세요.";
+                resp += "채굴 기록을 초기화하려면 한 번 더 'ㅇ채굴 초기화' 하세요.";
               } else if (del_flag.includes("true")) {
                 resp += sender + "님의 채굴 기록을 초기화합니다.";
                 DataBase.setDataBase(sprintf(mining_db, sender, "money"), "0");
@@ -1080,9 +1080,14 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
             }
           }
           else if (msg.slice(4).startsWith("랭킹")) {
-            if (msg.slice(7).startsWith("등록")) {
-              if (!DataBase.getDataBase(sprintf(mining_db, "room/" + room, "rank").includes(sender))) {
-                DataBase.setDataBase(sprintf(mining_db, "room/" + room, "rank"), sender + "\n");
+            if (msg.slice(7).startsWith("등록") || msg.slice(7).startsWith("참가") || msg.slice(7).startsWith("가입")) {
+              mining_ranking = DataBase.getDataBase(sprintf(mining_db, "room/" + room, "rank"));
+              if (mining_ranking == null) {
+                DataBase.setDataBase(sprintf(mining_db, "room/" + room, "rank"), "\n");
+                mining_ranking = DataBase.getDataBase(sprintf(mining_db, "room/" + room, "rank"));
+              }
+              if (!mining_ranking.includes(sender)) {
+                DataBase.appendDataBase(sprintf(mining_db, "room/" + room, "rank"), sender + "\n");
                 resp += "랭킹에 등록했습니다. 'ㅇ채굴 랭킹'으로 확인해보세요.";
               } else {
                 resp += "이미 랭킹에 등록되어있어요.";
@@ -1110,7 +1115,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
                   resp += "🏆채굴 랭킹\n";
                   resp += "-------------------------\n";
                   resp += makeRankingStr(rank, "mining");
-                  resp += "-------------------------\n";
+                  resp += "-------------------------";
                 } else {
                   resp += "아직 아무도 채굴하지 않았네요. `ㅇ채굴(ㅊㄱ)`로 채굴해보세요.";
                 }
