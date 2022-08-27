@@ -204,35 +204,35 @@ function saveRanking(room) {
 function miningSomething(sender) {
   mining = Math.random();
   tmp_str = "[" + sender + "] ";
-  if (mining < 0.001) {
+  if (mining <= 0.001) { // 0.1%
     DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "1");
     tmp_str += "💍다이아몬드💍를 캤다!";
   }
-  else if (mining < 0.01) {
+  else if (mining < 0.011) { // 1%
     DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "2");
     tmp_str += "🎉사파이어🎉를 캤다!";
   }
-  else if (mining < 0.1) {
+  else if (mining < 0.061) { // 5%
     DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "3");
     tmp_str += "✨루비✨를 캤다!";
   }
-  else if (mining < 0.2) {
+  else if (mining < 0.161) { // 10%
     DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "4");
     tmp_str += "💵가넷을 캤다!";
   }
-  else if (mining < 0.3) {
+  else if (mining < 0.311) { // 15%
     DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "5");
     tmp_str += "🪙금을 캤다!";
   }
-  else if (mining < 0.4) {
+  else if (mining < 0.501) { // 19%
     DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "6");
     tmp_str += "🥄은을 캤다!";
   }
-  else if (mining < 0.5) {
+  else if (mining < 0.701) { // 20%
     DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "7");
     tmp_str += "동을 캤다!";
   }
-  else {
+  else { // 29.9%
     DataBase.appendDataBase(sprintf(mining_db, sender, "gemstones"), "8");
     tmp_str += "와. 짱돌을 얻으셨어요.";
   }
@@ -255,37 +255,38 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
       resp += sender + "님, 정답이에요! (정확도:" + acc.toString() + "%)\n";
       resp += DataBase.getDataBase(sprintf(nonsense_db, room) + "/why");
       DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "false");
+      
       luck_point = Math.random();
-
-      if (luck_point < 0.0001) {
+      
+      if (luck_point < 0.001) {
         for (let i = 0; i < 100; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n🎊0.01% 확률 당첨! +100점";
-      } else if (luck_point < 0.001) {
+        resp += "\n🎊0.1% 확률 당첨! +100점🎊";
+      } else if (luck_point < 0.011) {
         for (let i = 0; i < 20; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n🎉0.1% 확률 당첨! +20점";
-      } else if (luck_point < 0.01) {
+        resp += "\n🎉1% 확률 당첨! +20점🎉";
+      } else if (luck_point < 0.061) {
         for (let i = 0; i < 10; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n🎈1% 확률 당첨! +10점";
+        resp += "\n🎈5% 확률 당첨! +10점🎈";
       }
-      else if (luck_point < 0.1) {
+      else if (luck_point < 0.161) {
         for (let i = 0; i < 5; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
         resp += "\n🎁10% 확률 당첨! +5점";
       }
-      else if (luck_point < 0.2) {
+      else if (luck_point < 0.361) {
         for (let i = 0; i < 3; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
         resp += "\n✨20% 확률 당첨! +3점";
       }
-      else if (luck_point < 0.3) {
+      else if (luck_point < 0.661) {
         for (let i = 0; i < 2; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
