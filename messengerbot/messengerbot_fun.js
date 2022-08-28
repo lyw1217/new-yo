@@ -34,6 +34,7 @@ const mining_db = Bridge.getScopeOf("comm").mining_db;
 const isAdmin = Bridge.getScopeOf("comm").isAdmin;
 const sprintf = Bridge.getScopeOf("comm").sprintf;
 const toStringByFormatting = Bridge.getScopeOf("comm").toStringByFormatting;
+const priceToString = Bridge.getScopeOf("comm").priceToString;
 
 const naverSearchBookUrl = "https://openapi.naver.com/v1/search/book.json";
 const lottoUrl =
@@ -168,7 +169,7 @@ function makeRankingStr(rank, opt) {
       person += medals[medal_cnt];
     }
     person += items[i][0];
-    person = person.padEnd(7, '　') + " : " + items[i][1] + (opt == "nonsense" ? "점" : "원") +"\n";
+    person = person.padEnd(7, '　') + " : " + priceToString(items[i][1]) + (opt == "nonsense" ? "점" : "원") +"\n";
     str += person;
   }
 
@@ -774,12 +775,12 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
           }
         }
 
-        else if (msg.startsWith('ㅇ넌센스')) {
+        else if (msg.startsWith('ㅇ넌센스') || msg.startsWith('ㄴㅅㅅ')) {
           if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/flag") == null) {
             DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "false");
           }
 
-          if (msg == 'ㅇ넌센스') {
+          if (msg == 'ㅇ넌센스' || msg == 'ㄴㅅㅅ') {
             if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/flag") == "false") {
               if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/rank") == null) {
                 DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
@@ -1001,8 +1002,8 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               silver = (gemstones.match(/6/g) || []).length;
               bronze = (gemstones.match(/7/g) || []).length;
               stone = (gemstones.match(/8/g) || []).length;
-
-              resp += sender + "님의 돈 : " + coin + "원" + Lw + "\n";
+              
+              resp += sender + "님의 돈 : " + priceToString(coin) + "원" + Lw + "\n";
               resp += "------------------------------\n";
               resp += "다이아몬드\t: " + diamond + "개\n";
               resp += "사파이어\t: " + sapphire + "개\n";
@@ -1043,21 +1044,21 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
                 parseInt(stone) * 100;
               if (sales > 0) {
                 coin = (parseInt(coin) + sales).toString();
-                resp += "원석들을 전부 판매해서 " + sales.toString() + "원을 벌었어요.\n";
-                resp += sender + "님의 돈 : " + coin + "원\n" + Lw;
+                resp += "원석들을 전부 판매해서 " + priceToString(sales) + "원을 벌었어요.\n";
+                resp += sender + "님의 돈 : " + priceToString(coin) + "원\n" + Lw;
                 DataBase.setDataBase(sprintf(mining_db, sender, "money"), coin);
                 DataBase.setDataBase(sprintf(mining_db, sender, "gemstones"), "\n");
 
                 resp += "판매 목록\n";
                 resp += "------------------------------\n";
-                resp += "다이아몬드\t: " + diamond + "개, " + parseInt(diamond) * 100000 + "원\n";
-                resp += "사파이어\t: " + sapphire + "개, " + parseInt(sapphire) * 7000 + "원\n";
-                resp += "루비\t\t: " + ruby + "개, " + parseInt(ruby) * 5000 + "원\n";
-                resp += "가넷\t\t: " + garnet + "개, " + parseInt(garnet) * 3000 + "원\n";
-                resp += "금\t\t: " + gold + "개, " + parseInt(gold) * 1000 + "원\n";
-                resp += "은\t\t: " + silver + "개, " + parseInt(silver) * 300 + "원\n";
-                resp += "동\t\t: " + bronze + "개, " + parseInt(bronze) * 200 + "원\n";
-                resp += "짱돌\t\t: " + stone + "개, " + parseInt(stone) * 100 + "원\n";
+                resp += "다이아몬드\t: " + diamond + "개, " + priceToString(parseInt(diamond) * 100000) + "원\n";
+                resp += "사파이어\t: " + sapphire + "개, " + priceToString(parseInt(sapphire) * 7000) + "원\n";
+                resp += "루비\t\t: " + ruby + "개, " + priceToString(parseInt(ruby) * 5000) + "원\n";
+                resp += "가넷\t\t: " + garnet + "개, " + priceToString(parseInt(garnet) * 3000) + "원\n";
+                resp += "금\t\t: " + gold + "개, " + priceToString(parseInt(gold) * 1000) + "원\n";
+                resp += "은\t\t: " + silver + "개, " + priceToString(parseInt(silver) * 300) + "원\n";
+                resp += "동\t\t: " + bronze + "개, " + priceToString(parseInt(bronze) * 200) + "원\n";
+                resp += "짱돌\t\t: " + stone + "개, " + priceToString(parseInt(stone) * 100) + "원\n";
               } else {
                 resp += "원석이 없어요. 'ㅇ채굴(ㅊㄱ)'로 채굴해보세요.";
               }

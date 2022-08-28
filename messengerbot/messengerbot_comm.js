@@ -150,6 +150,11 @@ function getNaverSecret() {
   return k.replace(/[\n\t\r]/g, "");
 }
 
+/* https://gofnrk.tistory.com/106 */
+function priceToString(price) {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 const onStartCompile = () => {
   clearInterval(INTER);
 
