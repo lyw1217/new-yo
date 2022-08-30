@@ -229,6 +229,9 @@ function printMainHelp() {
   temp_str += printAiHelp();
   temp_str += "\n\n";
 
+  temp_str += printMiningHelp();
+  temp_str += "\n\n";
+
   temp_str += "--------------------------------\n";
   temp_str += "  `ㅇ그만`, `ㅇ시작`으로 로봇을 멈추거나 시작할 수 있어요.\n";
   return temp_str;
@@ -303,7 +306,10 @@ function printFunHelp() {
   temp_str += "□ `ㅈ(종목명)`\n    - 주식 종목 현재가 조회\n";
   temp_str += "□ `ㅇ무스메`\n    - 랜덤뽑기\n";
   temp_str += "□ `ㅇ넌센스`\n    - 넌센스 문제!\n";
+  temp_str += "    - `ㅇ넌센스 랭킹` : 넌센스 랭킹 조회\n";
   temp_str += "    - `ㅇ넌센스 포기` : 넌센스 문제를 시작한 사람만 포기 가능\n";
+  temp_str += "□ `ㅇ책 검색 (검색어)`\n    - 네이버 도서 검색\n";
+  temp_str += "□ `ㅇ채굴`\n    - 채굴해서 부자되기\n";
   temp_str += "--------------------------------";
 
   return temp_str;
@@ -350,7 +356,13 @@ function printNonsenseHelp() {
   temp_str += "□ `ㅇ넌센스 랭킹 어제`\n    - 어제 랭킹 확인하기\n";
   temp_str += "-------------------------------\n";
   temp_str += "정답을 맞추면 1점 획득!\n";
-  temp_str += "10% 확률로 +2점, 1% 확률로 +5점, 0.1% 확률로 +10점 획득 가능";
+  temp_str += "--- 추가 점수 확률 ---\n";
+  temp_str += "    0.1% : 100점\n";
+  temp_str += "      1% : 20점\n";
+  temp_str += "      5% : 10점\n";
+  temp_str += "     10% : 5점\n";
+  temp_str += "     20% : 3점\n";
+  temp_str += "     30% : 2점\n";
 
   return temp_str;
 }
@@ -370,6 +382,32 @@ function printAiHelp(){
   temp_str += "    표준어, 경상도, 전라도\n";
   temp_str += "    강원도, 제주도, 충청도";
 
+  return temp_str;
+}
+
+function printMiningHelp() {
+  let temp_str = "";
+  temp_str += "⚒️채굴⛏️\n";
+  temp_str += "□ `ㅇ채굴` : 채굴 하기('ㅇㅊㄱ' 도 가능)\n";
+  temp_str += "□ `ㅇ채굴 가입` : 채굴 시작하기\n";
+  temp_str += "□ `ㅇ채굴 확인` : 채굴 현황 확인\n";
+  temp_str += "□ `ㅇ채굴 판매` : 채굴한 원석 판매하기\n";
+  temp_str += "□ `ㅇ채굴 초기화` : 채굴 기록 초기화\n";
+  temp_str += "□ `ㅇ채굴 랭킹` : 채굴 랭킹 조회하기\n";
+  temp_str += "    - `ㅇ채굴 랭킹 등록` : 채굴 랭킹 등록하기\n";
+  temp_str += "--------------------------------\n";
+  temp_str += "봇에게 개인톡해도 채굴할 수 있습니다\n";
+  temp_str += "너무 많이, 빠르게 하면 카톡 정지당할 수 있습니다.\n";
+  temp_str += "-------- 확률 --------\n";
+  temp_str += "    0.1% : 다이아몬드\n";
+  temp_str += "      1% : 사파이어\n";
+  temp_str += "      5% : 루비\n";
+  temp_str += "     10% : 가넷\n";
+  temp_str += "     15% : 금\n";
+  temp_str += "     19% : 은\n";
+  temp_str += "     20% : 동\n";
+  temp_str += "     30% : 짱돌\n";
+  
   return temp_str;
 }
 
