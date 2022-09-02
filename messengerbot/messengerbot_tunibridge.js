@@ -29,7 +29,7 @@ const room_emotion_db = Bridge.getScopeOf("comm").room_emotion_db;
 let data;
 let emotion_flag = "false";
 
-function responseFix(
+function response(
     room,
     msg,
     sender,
@@ -219,6 +219,7 @@ String.prototype.postposition = function () {
 };
 
 /* Dark Tornado - https://cafe.naver.com/nameyee/39192 */
+/*
 function onNotificationPosted(sbn, sm) {
     var packageName = sbn.getPackageName();
     if (!packageName.startsWith("com.kakao.tal")) return;
@@ -247,3 +248,4 @@ function onNotificationPosted(sbn, sm) {
         }
     }
 }
+*/

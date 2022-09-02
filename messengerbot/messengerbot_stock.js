@@ -50,7 +50,7 @@ const daumstockUrl = "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SB
 const exchangeUrl = "http://fx.kebhana.com/FER1101M.web";
 let data;
 
-function responseFix(
+function response(
   room,
   msg,
   sender,
@@ -326,6 +326,7 @@ function onPause(activity) { }
 function onStop(activity) { }
 
 /* Dark Tornado - https://cafe.naver.com/nameyee/39192 */
+/*
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
   if (!packageName.startsWith("com.kakao.tal")) return;
@@ -377,4 +378,4 @@ function onNotificationPosted(sbn, sm) {
     }
   }
 }
-
+*/
