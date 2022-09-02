@@ -54,9 +54,10 @@ function findNotPermitWords(str) {
   const comm_commands = ["ㅇ시작", "ㅇ그만", "ㅇ기능", "ㅇ날씨", "ㅇ예보", "ㅇ루트"];
   const fun_commands = ["ㅇ로또", "ㅇ가르치기", "ㅇ학습제거", "ㅇ학습리스트", "ㅇ로마", "ㅇ번역", "ㅇ오점무", "ㅇ운세", "ㅇ무스메", "ㅇ넌센스", "힌트"];
   if (regex.test(str)) return true;
-  if (newyo_commands.includes(str) > -1) return true;
-  if (comm_commands.includes(str) > -1) return true;
-  if (fun_commands.includes(str) > -1) return true;
+  if (newyo_commands.includes(str)) return true;
+  if (comm_commands.includes(str)) return true;
+  if (fun_commands.includes(str)) return true;
+  
 
   return false;
 }
@@ -169,7 +170,7 @@ function makeRankingStr(rank, opt) {
       person += medals[medal_cnt];
     }
     person += items[i][0];
-    person = person.padEnd(7, '　') + " : " + priceToString(items[i][1]) + (opt == "nonsense" ? "점" : "원") +"\n";
+    person = person.padEnd(7, '　') + " : " + priceToString(items[i][1]) + (opt == "nonsense" ? "점" : "원") + "\n";
     str += person;
   }
 
@@ -241,7 +242,7 @@ function miningSomething(sender) {
   return tmp_str;
 }
 
-function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
+function response(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
   let resp = "";
 
   let run = DataBase.getDataBase(sprintf(room_run_db, room));
@@ -256,49 +257,77 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
       resp += sender + "님, 정답이에요! (정확도:" + acc.toString() + "%)\n";
       resp += DataBase.getDataBase(sprintf(nonsense_db, room) + "/why");
       DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "false");
-      
+
       luck_point = Math.random();
-      
+      luck_money = 0;
       if (luck_point < 0.001) {
         for (let i = 0; i < 100; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n🎊0.1% 확률 당첨! +100점🎊";
+        resp += "\n🎊0.1% 확률 당첨! +100점🎊 +100000원";
+        luck_money = 100000;
       } else if (luck_point < 0.011) {
         for (let i = 0; i < 20; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n🎉1% 확률 당첨! +20점🎉";
+        resp += "\n🎉1% 확률 당첨! +20점🎉 +10000원";
+        luck_money = 10000;
       } else if (luck_point < 0.061) {
         for (let i = 0; i < 10; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n🎈5% 확률 당첨! +10점🎈";
+        resp += "\n🎈5% 확률 당첨! +10점🎈 +5000원";
+        luck_money = 5000;
       }
       else if (luck_point < 0.161) {
         for (let i = 0; i < 5; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n🎁10% 확률 당첨! +5점";
+        resp += "\n🎁10% 확률 당첨! +5점 +3000원";
+        luck_money = 3000;
       }
       else if (luck_point < 0.361) {
         for (let i = 0; i < 3; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n✨20% 확률 당첨! +3점";
+        resp += "\n✨20% 확률 당첨! +3점 +2000원";
+        luck_money = 2000;
       }
       else if (luck_point < 0.661) {
         for (let i = 0; i < 2; i++) {
           DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
         }
-        resp += "\n★30% 확률 당첨! +2점";
+        resp += "\n★30% 확률 당첨! +2점 +1000원";
+        luck_money = 1000;
       } else {
         DataBase.appendDataBase(sprintf(nonsense_db, room) + "/rank", sender + "\n");
       }
 
       saveRanking(room);
+
+      coin = DataBase.getDataBase(sprintf(mining_db, sender, "money"));
+      if (coin != null) {
+        coin = (parseInt(coin) + 1400 + luck_money).toString();
+        resp += Lw + "\n" + sender + "님의 돈 : " + priceToString(coin) + "원 (+1400, +" + luck_money.toString() + ")\n";
+        DataBase.setDataBase(sprintf(mining_db, sender, "money"), coin);
+      }
+
     } else if (msg.includes("힌트")) {
-      resp += "힌트는 " + DataBase.getDataBase(sprintf(nonsense_db, room) + "/hint");
+      coin = DataBase.getDataBase(sprintf(mining_db, sender, "money"));
+      if (coin != null) {
+        if (parseInt(coin) >= 500) {
+          resp += "힌트는 " + DataBase.getDataBase(sprintf(nonsense_db, room) + "/hint");
+
+          coin = (parseInt(coin) - 500).toString();
+          resp += "\n" + Lw + sender + "님의 돈 : " + priceToString(coin) + "원 (-500)\n";
+          DataBase.setDataBase(sprintf(mining_db, sender, "money"), coin);
+        } else {
+          resp += "거지는 힌트 받을 생각 마세요.";
+          resp += Lw + "\n" + sender + "님의 돈 : " + priceToString(coin) + "원\n";
+        }
+      } else {
+        resp += "힌트는 " + DataBase.getDataBase(sprintf(nonsense_db, room) + "/hint");
+      }
     }
   }
 
@@ -785,26 +814,42 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               if (DataBase.getDataBase(sprintf(nonsense_db, room) + "/rank") == null) {
                 DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
               }
-              try {
-                quiz = Game.setNewQuestion();
-                DataBase.setDataBase(sprintf(nonsense_db, room) + "/sender", sender);
-                DataBase.setDataBase(sprintf(nonsense_db, room) + "/question", quiz.question);
-                DataBase.setDataBase(sprintf(nonsense_db, room) + "/answer", quiz.answer);
-                DataBase.setDataBase(sprintf(nonsense_db, room) + "/hint", quiz.hint);
-                DataBase.setDataBase(sprintf(nonsense_db, room) + "/why", quiz.why);
-                DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "true");
-                resp += quiz.question + "\n> 정답을 바로 이야기해보세요. 잘 모르겠으면 '힌트'";
 
-                if (DataBase.getDataBase(sprintf(nonsense_db, room) +
-                  "/rank_" + toStringByFormatting(new Date(), '-')) == null) {
-                  DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
-                  Log.d("넌센스 랭킹 초기화");
+              coin = DataBase.getDataBase(sprintf(mining_db, sender, "money"));
+
+              if (coin != null) {
+                if (parseInt(coin) >= 1000) {
+                  try {
+                    quiz = Game.setNewQuestion();
+                    DataBase.setDataBase(sprintf(nonsense_db, room) + "/sender", sender);
+                    DataBase.setDataBase(sprintf(nonsense_db, room) + "/question", quiz.question);
+                    DataBase.setDataBase(sprintf(nonsense_db, room) + "/answer", quiz.answer);
+                    DataBase.setDataBase(sprintf(nonsense_db, room) + "/hint", quiz.hint);
+                    DataBase.setDataBase(sprintf(nonsense_db, room) + "/why", quiz.why);
+                    DataBase.setDataBase(sprintf(nonsense_db, room) + "/flag", "true");
+                    resp += quiz.question + "\n> 정답을 바로 이야기해보세요. 잘 모르겠으면 '힌트'";
+
+                    if (DataBase.getDataBase(sprintf(nonsense_db, room) +
+                      "/rank_" + toStringByFormatting(new Date(), '-')) == null) {
+                      DataBase.setDataBase(sprintf(nonsense_db, room) + "/rank", "\n");
+                      Log.d("넌센스 랭킹 초기화");
+                    }
+                  } catch (error) {
+                    Log.e(error);
+                    resp += "넌센스 문제를 가져오지 못했어요.";
+                  }
+
+                  coin = (parseInt(coin) - 1000).toString()
+                  DataBase.setDataBase(sprintf(mining_db, sender, "money"), coin);
+
+                  resp += "\n" + sender + "님의 남은 돈 : " + priceToString(coin) + "원 (-1000원)";
+                } else {
+                  resp += "거지는 넌센스 자격이 없습니다." + Lw;
+                  resp += sender + "님의 돈 : " + priceToString(coin) + "원";
                 }
-              } catch (error) {
-                Log.e(error);
-                resp += "넌센스 문제를 가져오지 못했어요.";
+              } else {
+                resp += "'ㅇ채굴'로 돈을 모아 넌센스를 시작해보세요.";
               }
-
             } else {
               resp += "[" + DataBase.getDataBase(sprintf(nonsense_db, room) + "/question") + "] 문제가 진행 중이에요.\n";
               resp += "다른 문제를 풀고 싶으시면 문제를 시작하신 분이 `ㅇ넌센스 포기` 라고 말씀해주세요.";
@@ -1002,7 +1047,7 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
               silver = (gemstones.match(/6/g) || []).length;
               bronze = (gemstones.match(/7/g) || []).length;
               stone = (gemstones.match(/8/g) || []).length;
-              
+
               resp += sender + "님의 돈 : " + priceToString(coin) + "원" + Lw + "\n";
               resp += "------------------------------\n";
               resp += "다이아몬드\t: " + diamond + "개\n";
@@ -1094,12 +1139,12 @@ function responseFix(room, msg, sender, isGroupChat, replier, imageDB, packageNa
                 resp += "이미 랭킹에 등록되어있어요.";
               }
             }
-            else { 
+            else {
               if (DataBase.getDataBase(sprintf(mining_db, "room/" + room, "rank")) == null) {
                 resp += "랭킹에 아무도 등록하지 않았어요. 'ㅇ채굴 랭킹 등록'으로 등록해보세요.";
               } else {
                 rank_list = DataBase.getDataBase(sprintf(mining_db, "room/" + room, "rank")).split('\n');
-                
+
                 rank = {};
                 for (let i = 0; i < rank_list.length; i++) {
                   if (rank_list[i].length > 0) {
@@ -1185,6 +1230,7 @@ String.prototype.postposition = function () {
 };
 
 /* Dark Tornado - https://cafe.naver.com/nameyee/39192 */
+/*
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
   if (!packageName.startsWith("com.kakao.tal")) return;
@@ -1213,7 +1259,7 @@ function onNotificationPosted(sbn, sm) {
     }
   }
 }
-
+*/
 /* 사로로 - 네이버 넌센스 퀴즈 모듈 https://cafe.naver.com/nameyee/37912 */
 const { NonSenseGame } = require('nonsense');
 const Game = new NonSenseGame();
