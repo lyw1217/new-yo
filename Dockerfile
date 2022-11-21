@@ -14,6 +14,9 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o /usr/local/bin/newyo .
 
+WORKDIR /usr/src
+RUN tar -cvf app.tar ./app
+
 FROM ${BASE_IMAGE}
 LABEL AUTHOR Youngwoo Lee (mvl100d@gmail.com)
 ENV GIN_MODE=debug \
@@ -25,14 +28,12 @@ RUN apk --no-cache add tzdata && \
 	echo $TZ > /etc/timezone \
 	apk del tzdata
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src
 
-COPY --chown=0:0 --from=builder /usr/src/app/cfg		/usr/src/app/cfg
-COPY --chown=0:0 --from=builder /usr/src/app/log		/usr/src/app/log
-COPY --chown=0:0 --from=builder /usr/src/app/go.mod		/usr/src/app/go.mod
-COPY --chown=0:0 --from=builder /usr/src/app/go.sum		/usr/src/app/go.sum
+COPY --chown=0:0 --from=builder /usr/src/app.tar		/usr/src
+COPY --chown=0:0 --from=builder /usr/src/app/run.sh		/usr/src
 COPY --chown=0:0 --from=builder /usr/local/bin/newyo	/usr/local/bin/newyo
 
 EXPOSE ${PORT}
 
-CMD ["newyo"]
+ENTRYPOINT ["/usr/src/run.sh"]
