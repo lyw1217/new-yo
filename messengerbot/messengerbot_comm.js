@@ -446,7 +446,8 @@ function toStringByFormatting(source, delimiter) {
   return [year, month, day].join(delimiter);
 }
 
-function responseFix(
+//function responseFix(
+  function response(
   room,
   msg,
   sender,
@@ -582,6 +583,7 @@ function onPause(activity) { }
 function onStop(activity) { }
 
 /* Dark Tornado - https://cafe.naver.com/nameyee/39192 */
+/*
 function onNotificationPosted(sbn, sm) {
   var packageName = sbn.getPackageName();
   if (!packageName.startsWith("com.kakao.tal")) return;
@@ -633,7 +635,7 @@ function onNotificationPosted(sbn, sm) {
     }
   }
 }
-
+*/
 /* https://github.com/naijun0403/kakaolink */
 const { KakaoApiService, KakaoLinkClient } = require("kakaolink");
 
@@ -648,7 +650,7 @@ KakaoApiService.createService()
   .then((e) => {
     Kakao.login(e, {
       apiKey: kakaoApiKey,
-      url: "https://mumeog.site",
+      url: "https://lunchtoday.site",
     });
   })
   .catch((e) => {
