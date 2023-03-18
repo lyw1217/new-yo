@@ -88,7 +88,7 @@ function response(
   imageDB,
   packageName
 ) {
-  const url = "http://mumeog.site:30100";
+  const url = "http://lunchtoday.site:30100";
   const weather_qry = "/weather?";
   let data;
   let resp = "";
@@ -157,7 +157,7 @@ function response(
           sky_img_url = "https://ssl.pstatic.net/sstatic/keypage/outside/scui/weather_new_new/img/weather_svg_v2/icon_flat_%s.svg";
           thu = sprintf(sky_img_url, sky_sts.slice(-3));
           */
-          thu = sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          thu = sprintf("https://lunchtoday.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
           lnk = 'http://search.naver.com/search.naver?query=' + msg.slice(4) + '+날씨';
           loc = naver_resp.select("._area_panel > .title").first().text();
           temp = naver_resp.select(".temperature_text").first().text().slice("현재 온도".length);
@@ -306,7 +306,7 @@ function response(
         naver_resp = org.jsoup.Jsoup.connect('http://search.naver.com/search.naver?query=' + msg.slice(4) + '+날씨').get();
         if (!naver_resp.select("._area_panel > .title").isEmpty() || !naver_resp.select(".weekly_forecast_area").isEmpty()) {
           sky_sts = naver_resp.select(".weather_main > i").first().attr("class").split(" ")[1];
-          thu = sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          thu = sprintf("https://lunchtoday.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
           lnk = 'http://search.naver.com/search.naver?query=' + msg.slice(4) + '+날씨';
           loc = naver_resp.select("._area_panel > .title").first().text();
           temp = naver_resp.select(".temperature_text").first().text().slice("현재 온도".length);
@@ -369,11 +369,11 @@ function response(
           td_h_temp_tit = "최고";
           td_h_temp = td_li.select(".day_data > .cell_temperature > .temperature_inner > .highest").first().text().slice(4);
           sky_sts = td_li.select(".day_data > .cell_weather > .weather_inner > i").first().attr("class").split(" ")[1];
-          thu_2 = sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          thu_2 = sprintf("https://lunchtoday.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
 
           td_pm_pro = td_li.select(".day_data > .cell_weather > .weather_inner").get(1).select(".weather_left > .rainfall").text();
           sky_sts = td_li.select(".cell_weather > .weather_inner > i").get(1).attr("class").split(" ")[1];
-          thu_3 = sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          thu_3 = sprintf("https://lunchtoday.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
 
 
 
@@ -385,11 +385,11 @@ function response(
           tm_h_temp_tit = "최고";
           tm_h_temp = tm_li.select(".day_data > .cell_temperature > .temperature_inner > .highest").first().text().slice(4);
           sky_sts = tm_li.select(".day_data > .cell_weather > .weather_inner > i").first().attr("class").split(" ")[1];
-          thu_4 = sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          thu_4 = sprintf("https://lunchtoday.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
 
           tm_pm_pro = tm_li.select(".day_data > .cell_weather > .weather_inner").get(1).select(".weather_left > .rainfall").text();
           sky_sts = tm_li.select(".cell_weather > .weather_inner > i").get(1).attr("class").split(" ")[1];
-          thu_5 = sprintf("https://mumeog.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
+          thu_5 = sprintf("https://lunchtoday.site/weather?query=%s%s", sky_sts.slice(6), apikey_qry);
 
           /*
           Log.d("td_date = " + td_date);

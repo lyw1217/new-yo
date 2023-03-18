@@ -21,7 +21,7 @@ const sprintf = Bridge.getScopeOf("comm").sprintf;
 
 const subs_hour = 8;
 const subs_min = 30;
-let url = "http://mumeog.site:30100";
+let url = "http://lunchtoday.site:30100";
 let article_qry = "/article?paper=";
 
 let admin = Bridge.getScopeOf("comm").admin

@@ -41,7 +41,7 @@ const lottoUrl =
   "http://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=";
 let drwNo = 0;
 let data;
-const url = "http://mumeog.site:30100";
+const url = "http://lunchtoday.site:30100";
 const roman_qry = "/romanization?query=";
 const papago_qry = "/papago?text=";
 let words_list = getLearnedListArr();
@@ -525,7 +525,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
             }
 
             try {
-              data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_ojeommu_words + "&cat=" + parseCategory(input_cat_words) + apikey_qry).text();
+              data = Utils.parse("http://lunchtoday.site/ojeommu?query=" + input_ojeommu_words + "&cat=" + parseCategory(input_cat_words) + apikey_qry).text();
               //data = Utils.parse("https://ojeommu.herokuapp.com/api?query="+ input_ojeommu_words + "&cat=" + parseCategory(input_cat_words)).text();
               data = JSON.parse(data);
 
@@ -585,7 +585,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
           input_words = msg.slice(5).trim();
 
           try {
-            data = Utils.parse("http://mumeog.site/ojeommu?query=" + input_words + apikey_qry + "&target=naver").text();
+            data = Utils.parse("http://lunchtoday.site/ojeommu?query=" + input_words + apikey_qry + "&target=naver").text();
             data = JSON.parse(data);
 
             date = new Date();
