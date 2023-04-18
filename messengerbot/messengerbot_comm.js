@@ -24,7 +24,9 @@ const subslist_db = db_root + "subslist";
 const kakao_apikey_db = comm_db + "kakao_apikey";
 const kakao_email_db = comm_db + "kakao_email";
 const kakao_passwd_db = comm_db + "kakao_passwd";
-const kakaoApiKey = getKakaoApiKey();
+const kakao_rest_apikey_db = comm_db + "kakao_rest_apikey";
+const kakaoApiKey = getKakaoApiKey(); // JavaScript key
+const kakaoRestApiKey = getKakaoRestApiKey(); // REST API key
 const kakaoEmail = getKakaoEmail();
 const kakaoPasswd = getKakaoPasswd();
 
@@ -109,6 +111,15 @@ function getKakaoApiKey() {
   const k = DataBase.getDataBase(kakao_apikey_db);
   if (k == null) {
     Log.e("Kakao API Key is Null. Check API Key DB!!", true);
+    return "";
+  }
+  return k.replace(/[\n\t\r]/g, "");
+}
+
+function getKakaoRestApiKey() {
+  const k = DataBase.getDataBase(kakao_rest_apikey_db);
+  if (k == null) {
+    Log.e("Kakao REST API Key is Null. Check REST API Key DB!!", true);
     return "";
   }
   return k.replace(/[\n\t\r]/g, "");

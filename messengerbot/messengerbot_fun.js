@@ -30,6 +30,8 @@ const musume_db = Bridge.getScopeOf("comm").musume_db;
 const nonsense_db = Bridge.getScopeOf("comm").nonsense_db;
 const mining_db = Bridge.getScopeOf("comm").mining_db;
 
+const kakaoRestApiKey = Bridge.getScopeOf("comm").kakaoRestApiKey;
+
 /* functions */
 const isAdmin = Bridge.getScopeOf("comm").isAdmin;
 const sprintf = Bridge.getScopeOf("comm").sprintf;
@@ -498,6 +500,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
               resp += data;
             } catch (error) {
               resp += "로마자 변환을 하지 못했어요.";
+              Log.e(error);
             }
           }
         } else if (msg.startsWith("ㅇ번역")) {
@@ -508,6 +511,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
               resp += data;
             } catch (error) {
               resp += "파파고 번역을 하지 못했어요.";
+              Log.e(error);
             }
           }
         }
@@ -1175,6 +1179,31 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
             } else {
               resp += sender + "님은 채굴중이지 않습니다. 'ㅇ채굴 가입'으로 채굴을 시작해보세요.";
             }
+          }
+        } else if (msg.startsWith("ㅈㅍㅌ ")) {
+          try {
+            input = msg.slice(4);
+            var data = {
+              "prompt" : input,
+              "max_tokens" : 60,
+              "temperature" : 0.5,
+              "top_p" : 0.5,
+              "n" : 1
+             };
+            data = JSON.stringify(data);
+            var ans =org.jsoup.Jsoup.connect("https://api.kakaobrain.com/v1/inference/kogpt/generation")
+              .header("Content-Type", "application/json")
+              .header("Authorization", "KakaoAK" + kakaoRestApiKey) //api키 입력
+              .requestBody(data)
+              .ignoreHttpErrors(true)
+              .ignoreContentType(true)
+              .post().text();
+            var obj = JSON.parse(ans)
+            Log.d(ans);
+            resp += obj.generations[0].text;
+          } catch (error) {
+            resp += "KoGPT-3 조회를 실패했어요..";
+            Log.e(error);
           }
         }
       } catch (error) {
