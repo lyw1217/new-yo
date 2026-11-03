@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createApp, formatForecast, formatMidterm, type FcstItem } from "../src/app.js";
+import { createApp, formatForecast, formatMidterm, redactAuth, type FcstItem } from "../src/app.js";
 
 interface Call {
   method: string;
@@ -110,7 +110,12 @@ test("/weather short-term validates p", async () => {
   assert.equal(await reason("/weather?k1=a"), "Query p is invalid.");
   assert.equal(await reason("/weather?k1=a&p=x"), "Query p is not integer.");
   assert.equal(await reason("/weather?k1=a&p=2"), "Query p is invalid.");
+  // Outside Go's int64 Atoi range
+  assert.equal(await reason("/weather?k1=a&p=-9223372036854775809"), "Query p is not integer.");
+  assert.equal(await reason("/weather?k1=a&p=9223372036854775808"), "Query p is not integer.");
   assert.equal(calls.length, 0);
+  await app.request("/weather?k1=a&p=-9223372036854775808");
+  assert.equal(calls.length, 1);
 });
 
 test("/weather upstream failures", async () => {
@@ -154,4 +159,21 @@ test("/papago forwards as POST with query params", async () => {
   assert.equal((await app.request("/papago")).status, 400);
   const bad = make(() => new Response("", { status: 403 }));
   assert.equal((await bad.app.request("/papago?text=x")).status, 500);
+});
+
+test("/article keeps the scraper status when the error body is not JSON", async () => {
+  const { app } = make(() => new Response("Unauthorized", { status: 401, headers: { "Content-Type": "text/plain" } }));
+  const res = await app.request("/article?paper=hankyung");
+  assert.equal(res.status, 401);
+  assert.deepEqual(await res.json(), { status: 401, reason: "" });
+});
+
+test("request log masks the auth query value", async (t) => {
+  const lines: string[] = [];
+  t.mock.method(console, "log", (...args: unknown[]) => lines.push(args.join(" ")));
+  const f = fakeScraper(() => Response.json({ contents: "x" }));
+  await createApp({ scraperUrl: "http://scraper:30200", fetch: f.fn }).request("/article?paper=hankyung&auth=SECRET_AUTH");
+  assert.ok(lines.length >= 2);
+  for (const l of lines) assert.doesNotMatch(l, /SECRET_AUTH/);
+  assert.equal(redactAuth("GET /article?auth=abc&paper=x"), "GET /article?auth=***&paper=x");
 });

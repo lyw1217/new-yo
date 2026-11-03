@@ -64,6 +64,13 @@ export function formatMidterm(contents: string): string {
   return [...parts[0].split("-"), ...parts.slice(1)].join("@○");
 }
 
+/** `auth` is the bot's API key; keep it out of the request log. */
+export const redactAuth = (line: string) => line.replace(/([?&]auth=)[^&\s]*/gi, "$1***");
+
+// Go strconv.Atoi range on the 64-bit NAS
+const INT64_MIN = -(2n ** 63n);
+const INT64_MAX = 2n ** 63n - 1n;
+
 export function createApp(deps: AppDeps): Hono {
   const fetchFn = deps.fetch ?? fetch;
   const scraper = deps.scraperUrl.replace(/\/+$/, "");
@@ -75,7 +82,7 @@ export function createApp(deps: AppDeps): Hono {
   };
 
   const app = new Hono();
-  if (deps.log !== false) app.use(logger());
+  if (deps.log !== false) app.use(logger((msg, ...rest) => console.log(redactAuth(msg), ...rest)));
 
   app.get("/", (c) => c.text("Hello NEW-YO!"));
 
@@ -86,17 +93,20 @@ export function createApp(deps: AppDeps): Hono {
     const selected = PAPERS.filter(([id]) => id === paper);
     const contents: { paper: string; content: string }[] = [];
     for (const [id, title] of selected.length ? selected : PAPERS) {
-      let status: number;
+      let res: Response;
       let body: { contents?: unknown };
       try {
-        const res = await upstream("/article", auth ? [["paper", id], ["auth", auth]] : [["paper", id]]);
-        status = res.status;
+        res = await upstream("/article", auth ? [["paper", id], ["auth", auth]] : [["paper", id]]);
+        if (res.status !== 200) {
+          // Pass the scraper's status through; a non-JSON error body gives an empty reason, as in Go.
+          const err = (await res.json().catch(() => ({}))) as { contents?: unknown };
+          return json(c, res.status, { status: res.status, reason: err.contents ?? "" });
+        }
         body = (await res.json()) as { contents?: unknown };
       } catch (err) {
         console.error(`[article] ${id}:`, err);
         return json(c, 500, { status: "fail", reason: "Internal Server Error" });
       }
-      if (status !== 200) return json(c, status, { status, reason: body.contents ?? "" });
       const content = body.contents;
       contents.push({ paper: title, content: typeof content === "string" ? content : JSON.stringify(content ?? "") });
     }
@@ -112,7 +122,9 @@ export function createApp(deps: AppDeps): Hono {
     if (keywords.length) {
       const p = c.req.query("p") ?? "";
       if (!p) return badRequest(c, "Query p is invalid.");
-      if (!/^[+-]?\d+$/.test(p)) return badRequest(c, "Query p is not integer.");
+      if (!/^[+-]?\d+$/.test(p) || BigInt(p) < INT64_MIN || BigInt(p) > INT64_MAX) {
+        return badRequest(c, "Query p is not integer.");
+      }
       if (Number(p) > 1) return badRequest(c, "Query p is invalid.");
       const params: [string, string][] = keywords.map((k, i) => [`k${i + 1}`, k]);
       params.push(["auth", auth], ["p", p]);
